@@ -1,7 +1,7 @@
 name = "newera"
-main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
 
 account_id = "69becb9b62eb7ca72839b96d069cc630"
 
