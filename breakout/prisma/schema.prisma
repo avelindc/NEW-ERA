@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -20,8 +19,8 @@ model User {
   ktpUrl        String?
   nik           String?
   address       String?
-  role          Role      @default(USER)
-  status        UserStatus @default(PENDING)
+  role          String    @default("USER")
+  status        String    @default("PENDING")
   rejectionReason String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -35,18 +34,6 @@ model User {
   
   sentMessages      Message[] @relation("SentMessages")
   receivedMessages  MessageRecipient[] @relation("ReceivedMessages")
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum UserStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  SUSPENDED
 }
 
 model Admin {
@@ -81,7 +68,7 @@ model Release {
   artist         Artist         @relation(fields: [artistId], references: [id], onDelete: Cascade)
   
   title          String
-  type           ReleaseType    @default(SINGLE)
+  type           String         @default("SINGLE")
   genre          String
   language       String
   primaryArtist  String
@@ -89,9 +76,8 @@ model Release {
   releaseDate    DateTime
   coverArtworkUrl String
   
-  status         ReleaseStatus  @default(PENDING)
+  status         String         @default("PENDING")
   
-  // Existing Release / Import fields (optional)
   isImported      Boolean        @default(false)
   upc             String?
   distributor     String?
@@ -107,21 +93,6 @@ model Release {
   updatedAt      DateTime       @updatedAt
 }
 
-enum ReleaseType {
-  SINGLE
-  EP
-  ALBUM
-}
-
-enum ReleaseStatus {
-  PENDING
-  REVIEW
-  APPROVED
-  REJECTED
-  PROCESSING
-  RELEASED
-}
-
 model Track {
   id          String   @id @default(cuid())
   releaseId   String
@@ -134,7 +105,7 @@ model Track {
   composer    String?
   producer    String?
   lyrics      String?
-  tiktokClipStart String? // e.g. "00:30" or "01:15"
+  tiktokClipStart String?
   
   streams     Streaming[]
   royaltyPerSongs RoyaltyPerSong[]
@@ -148,25 +119,13 @@ model Streaming {
   trackId   String
   track     Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
   
-  platform  Platform
+  platform  String
   country   String?
   playCount Int      @default(0)
   date      DateTime
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-enum Platform {
-  SPOTIFY
-  APPLE_MUSIC
-  YOUTUBE_MUSIC
-  TIKTOK
-  AMAZON_MUSIC
-  DEEZER
-  BOOMPLAY
-  AUDIOMACK
-  OTHER
 }
 
 model Royalty {
@@ -184,9 +143,28 @@ model Royalty {
   tiktokStreams      Int @default(0)
   amazonStreams      Int @default(0)
   otherStreams       Int @default(0)
-  platformData       Json?
+  platformData       String?
   
   totalRevenue       Float @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RoyaltyPerSong {
+  id        String   @id @default(cuid())
+  artistId  String
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  trackId   String?
+  track     Track?   @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  
+  songTitle String
+  isrc      String?
+  period    String
+  streams   Int      @default(0)
+  revenue   Float    @default(0)
+  notes     String?
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -198,21 +176,29 @@ model WithdrawRequest {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   bankName      String
-  accountName   String
   accountNumber String
+  accountName   String
   amount        Float
-  
-  status        WithdrawStatus @default(PENDING)
+  status        String         @default("PENDING")
+  notes         String?
   
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 }
 
-enum WithdrawStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  PAID
+model Contract {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title     String
+  fileUrl   String
+  status    String   @default("PENDING")
+  signedAt  DateTime?
+  notes     String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Notification {
@@ -223,19 +209,9 @@ model Notification {
   title     String
   message   String
   isRead    Boolean  @default(false)
+  link      String?
   
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Settings {
-  id             String   @id @default(cuid())
-  key            String   @unique
-  value          String
-  description    String?
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 }
 
 model ActivityLog {
@@ -244,195 +220,63 @@ model ActivityLog {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   action    String
+  details   String?
+  ipAddress String?
   
   createdAt DateTime @default(now())
 }
 
 model Message {
-  id          String   @id @default(cuid())
-  subject     String
-  body        String   @db.Text
-  attachment  String?  // Supabase storage URL
-  fileName    String?  // Original file name
+  id        String   @id @default(cuid())
+  senderId  String
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   
-  senderId    String
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  subject   String
+  body      String
   
-  recipients  MessageRecipient[]
+  recipients MessageRecipient[]
   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
 
 model MessageRecipient {
-  id          String   @id @default(cuid())
-  messageId   String
-  message     Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
   
-  userId      String
-  user        User     @relation("ReceivedMessages", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation("ReceivedMessages", fields: [userId], references: [id], onDelete: Cascade)
   
-  isRead      Boolean  @default(false)
-  readAt      DateTime?
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
   
-  createdAt   DateTime @default(now())
-  
-  @@unique([messageId, userId])
+  createdAt DateTime @default(now())
 }
 
 model CatalogSong {
-  id        String   @id @default(cuid())
-  title     String
-  artist    String
-  vokal     String?
-  publisher String?
-  genre     String?
-  driveLink String?
+  id             String   @id @default(cuid())
+  title          String
+  artist         String
+  vokal          String?
+  publisher      String?
+  genre          String?
+  driveLink      String?
+  coverUrl       String?
+  audioUrl       String?
+  isDownloadable Boolean  @default(true)
+  isActive       Boolean  @default(true)
+  isrc           String?
   
-  coverUrl  String?
-  audioUrl  String?
-  isDownloadable Boolean @default(false)
-  
-  isActive  Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([title])
-  @@index([artist])
-  @@index([publisher])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
-model VerificationToken {
+model Settings {
   id          String   @id @default(cuid())
-  email       String
-  otp         String   // hashed OTP
-  expiresAt   DateTime
-  attempts    Int      @default(0)
-  resendCount Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([email])
-}
-
-model Contract {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  version      String   @default("1.0")
-  pdfUrl       String   // Supabase storage URL
-  signatureUrl String   // Supabase storage URL
-  signedAt     DateTime @default(now())
-  
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model PublisherCatalogSong {
-  id        String   @id @default(cuid())
-  title     String?
-  artist    String?
-  publisher String?
-  composer  String?
-  isrc      String?
-  upc       String?
-  album     String?
-  year      String?
-  keterangan String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([title])
-  @@index([artist])
-  @@index([publisher])
-}
-
-model ImportLog {
-  id             String          @id @default(cuid())
-  fileName       String
-  totalRows      Int
-  successCount   Int
-  failedCount    Int
-  duplicateCount Int
-  status         String          // "SUCCESS", "PARTIAL", "FAILED"
-  unmatchedSongs UnmatchedSong[]
-  createdAt      DateTime        @default(now())
-}
-
-model UnmatchedSong {
-  id          String     @id @default(cuid())
-  isrc        String?
-  upc         String?
-  title       String?
-  artist      String?
-  reason      String
-  importLogId String
-  importLog   ImportLog  @relation(fields: [importLogId], references: [id], onDelete: Cascade)
-  createdAt   DateTime   @default(now())
-}
-
-model CatalogRph {
-  id         String   @id @default(cuid())
-  title      String
-  singer     String
-  composer   String
-  youtubeUrl String?
-  coverUrl   String?
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model CatalogKhana {
-  id         String   @id @default(cuid())
-  songId     String?
-  title      String
-  composer   String
-  publisher  String?
-  performer  String
-  youtubeUrl String?
-  coverUrl   String?
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model CatalogHalo {
-  id         String   @id @default(cuid())
-  songId     String?
-  title      String
-  composer   String
-  publisher  String?
-  performer  String
-  youtubeUrl String?
-  coverUrl   String?
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
-model RoyaltyPerSong {
-  id          String   @id @default(cuid())
-  
-  artistId    String
-  artist      Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  
-  trackId     String?
-  track       Track?   @relation(fields: [trackId], references: [id], onDelete: SetNull)
-  
-  songName    String
-  platform    String
-  revenue     Float
-  currency    String   @default("IDR")
-  
-  month       Int
-  year        Int
-  status      String   @default("PAID")
+  key         String   @unique
+  value       String
+  description String?
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
-
