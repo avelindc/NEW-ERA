@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { auth } from "@/auth";
 import { UserSettingsForm } from "@/components/UserSettingsForm";
 import { PrismaClient } from "@prisma/client";

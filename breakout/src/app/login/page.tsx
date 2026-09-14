@@ -1,5 +1,7 @@
 "use client";
 
+export const runtime = 'edge';
+
 import { useState } from "react";
 import { loginAction } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";

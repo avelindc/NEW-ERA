@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { CatalogClient } from "@/components/CatalogClient";
 
 export default function UserCatalogPage() {

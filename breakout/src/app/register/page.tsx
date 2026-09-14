@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { isMaintenanceActive } from "@/lib/maintenance";
 import { RegisterClient } from "./RegisterClient";
 import { redirect } from "next/navigation";

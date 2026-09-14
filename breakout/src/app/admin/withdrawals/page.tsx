@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { WithdrawalActionButtons } from "./WithdrawalActionButtons";

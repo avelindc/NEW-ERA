@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { createClient } from "@supabase/supabase-js";
 import { RegistrationCards } from "./RegistrationCards";

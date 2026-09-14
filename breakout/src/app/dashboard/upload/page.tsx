@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import React from "react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";

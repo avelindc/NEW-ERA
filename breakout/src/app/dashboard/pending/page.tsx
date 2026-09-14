@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { auth } from "@/auth";
 import { LogOut } from "lucide-react";
 import { redirect } from "next/navigation";

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import ImportStreamingClient from "./ImportStreamingClient";
 import { getImportLogs } from "@/app/actions/importStreaming";
 

@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { getLandingPageCMS } from "@/app/actions/cms";
 import CMSClient from "./CMSClient";
 

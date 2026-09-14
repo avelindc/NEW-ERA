@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { Plus, Music, ExternalLink, Disc } from "lucide-react";
 import Link from "next/link";
