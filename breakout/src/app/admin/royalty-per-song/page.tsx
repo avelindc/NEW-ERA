@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { AdminRoyaltyPerSongClient } from "./AdminRoyaltyPerSongClient";
 import { DollarSign } from "lucide-react";

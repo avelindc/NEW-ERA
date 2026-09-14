@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { CatalogAdminClient } from "./CatalogAdminClient";
 

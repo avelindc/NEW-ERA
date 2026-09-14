@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { Bell, CheckCircle, Info, AlertTriangle } from "lucide-react";
 
 export default function UserNotificationsPage() {

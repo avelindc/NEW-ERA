@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { redirect } from "next/navigation";

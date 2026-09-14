@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { Construction, Calendar, Clock, AlertCircle } from "lucide-react";
 import { MaintenanceClock } from "./MaintenanceClock";

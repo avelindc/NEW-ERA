@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import AdminAnalyticsClient from "./AnalyticsClient";
 import { PrismaClient } from "@prisma/client";
 

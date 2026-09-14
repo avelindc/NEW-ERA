@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { DollarSign, DownloadCloud, Activity, Music, Smartphone, MonitorPlay, Headset } from "lucide-react";

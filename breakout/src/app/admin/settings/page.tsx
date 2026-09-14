@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { auth } from "@/auth";
 import { BrandSettingsForm } from "@/components/BrandSettingsForm";
 import { MaintenanceSettingsForm } from "@/components/MaintenanceSettingsForm";

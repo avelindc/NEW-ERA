@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { addRoyaltyAction } from "@/app/actions/royalties";
 import { DollarSign, Save } from "lucide-react";

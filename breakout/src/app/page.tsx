@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import Link from "next/link";
 import { AuroraBackground } from "@/components/AuroraBackground";
 import * as LucideIcons from "lucide-react";

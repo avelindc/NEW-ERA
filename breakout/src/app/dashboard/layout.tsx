@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";

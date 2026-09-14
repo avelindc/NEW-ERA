@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { Check, X, Ban, Settings } from "lucide-react";
 import { revalidatePath } from "next/cache";

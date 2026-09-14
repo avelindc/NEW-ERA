@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { CreditCard, Wallet, ArrowDownLeft, Clock, CheckCircle2, XCircle, Wifi } from "lucide-react";

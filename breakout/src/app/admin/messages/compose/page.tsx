@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { PrismaClient } from "@prisma/client";
 import { MessageComposeForm } from "@/components/MessageComposeForm";
 import Link from "next/link";

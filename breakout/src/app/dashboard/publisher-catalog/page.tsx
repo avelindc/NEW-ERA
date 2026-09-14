@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { PublisherCatalogUserClient } from "./PublisherCatalogUserClient";
 import { BookOpen } from "lucide-react";
 
