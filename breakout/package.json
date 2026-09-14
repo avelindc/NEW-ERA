@@ -1,14 +1,12 @@
 {
-  "name": "newera",
+  "name": "breakout",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "opennextjs-cloudflare build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && wrangler deploy",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -50,19 +48,16 @@
     "seed": "node prisma/seed.js"
   },
   "devDependencies": {
-    "@opennextjs/cloudflare": "^1.16.2",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-signature-canvas": "^1.0.7",
-    "esbuild": "^0.25.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "prisma": "^5.22.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "wrangler": "^3.114.17"
+    "typescript": "^5"
   }
 }
