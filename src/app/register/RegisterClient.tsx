@@ -55,7 +55,7 @@ export function RegisterClient() {
         
         {/* Header Logo */}
         <div className="flex flex-col items-center mb-6">
-          <img src="/logo-bne.png" alt="Breakout New Era" className="h-16 w-auto object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]" />
+          <img src="/logo-bne.png" alt="Breakout New Era" className="h-16 w-auto object-contain mix-blend-screen" />
         </div>
 
         {/* Error Message */}
