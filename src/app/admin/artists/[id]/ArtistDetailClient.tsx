@@ -1,0 +1,573 @@
+"use client";
+
+import { useState, useRef } from "react";
+import { 
+  ArrowLeft, Edit, Ban, CheckCircle, Key, Mail, 
+  Music, Disc, DollarSign, ArrowDownCircle, Play, Pause,
+  Search, Filter, Activity, Eye, Trash2, RefreshCw, CheckSquare, Square, Loader2
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { updateArtistStatusAction, resetUserPassword, deleteUserAction, resetArtistDataAction, bulkDeleteReleasesAction } from "@/app/actions/admin";
+
+type ArtistDetailClientProps = {
+  user: any;
+  stats: {
+    totalReleases: number;
+    totalTracks: number;
+    totalRoyalties: number;
+    totalStreams: number;
+    totalWithdrawals: number;
+  };
+  allTracks: any[];
+};
+
+export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClientProps) {
+  const router = useRouter();
+  const [trackList, setTrackList] = useState<any[]>(allTracks);
+  const [filterStatus, setFilterStatus] = useState<string>("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [playingTrack, setPlayingTrack] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
+  const [selectedReleaseIds, setSelectedReleaseIds] = useState<string[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingTracks, setIsDeletingTracks] = useState(false);
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [message, setMessage] = useState<{text: string, type: 'success' | 'error'} | null>(null);
+  
+  // Modals state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+
+  const primaryArtist = user.artists[0] || {};
+  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.round(amount));
+  };
+
+  // Filter tracks
+  const filteredTracks = trackList.filter(track => {
+    const matchesSearch = track.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (track.release?.title && track.release.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    if (filterStatus === "ALL") return matchesSearch;
+    return matchesSearch && track.release?.status === filterStatus;
+  });
+
+  const isAllSelected = filteredTracks.length > 0 && filteredTracks.every(t => selectedReleaseIds.includes(t.releaseId || t.release?.id));
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      const currentFilteredRelIds = new Set(filteredTracks.map(t => t.releaseId || t.release?.id));
+      setSelectedReleaseIds(prev => prev.filter(id => !currentFilteredRelIds.has(id)));
+    } else {
+      const currentFilteredRelIds = filteredTracks.map(t => t.releaseId || t.release?.id).filter(Boolean);
+      setSelectedReleaseIds(prev => Array.from(new Set([...prev, ...currentFilteredRelIds])));
+    }
+  };
+
+  const toggleSelectOne = (releaseId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setSelectedReleaseIds(prev => 
+      prev.includes(releaseId) ? prev.filter(id => id !== releaseId) : [...prev, releaseId]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedReleaseIds.length === 0) return;
+    setIsDeletingTracks(true);
+    const res = await bulkDeleteReleasesAction(selectedReleaseIds);
+    setIsDeletingTracks(false);
+    if (res.error) {
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      setTrackList(prev => prev.filter(t => !selectedReleaseIds.includes(t.releaseId || t.release?.id)));
+      setSelectedReleaseIds([]);
+      setShowDeleteConfirm(false);
+      setMessage({ text: `Berhasil menghapus ${res.count} rilisan/lagu terpilih.`, type: 'success' });
+      router.refresh();
+    }
+  };
+
+  const handleSingleDelete = async (releaseId: string, trackTitle: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus permanen lagu "${trackTitle}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+    setIsDeletingTracks(true);
+    const res = await bulkDeleteReleasesAction([releaseId]);
+    setIsDeletingTracks(false);
+    if (res.error) {
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      setTrackList(prev => prev.filter(t => (t.releaseId || t.release?.id) !== releaseId));
+      setSelectedReleaseIds(prev => prev.filter(id => id !== releaseId));
+      setMessage({ text: `Lagu "${trackTitle}" berhasil dihapus.`, type: 'success' });
+      router.refresh();
+    }
+  };
+
+  const handlePlay = (trackId: string, url: string) => {
+    if (playingTrack === trackId) {
+      audioRef.current?.pause();
+      setPlayingTrack(null);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.src = url;
+        audioRef.current.play();
+        setPlayingTrack(trackId);
+      }
+    }
+  };
+  
+  const handleStatusChange = async (newStatus: "APPROVED" | "SUSPENDED") => {
+    setIsProcessing(true);
+    const res = await updateArtistStatusAction(user.id, newStatus, user.name || "Artist", user.email);
+    setIsProcessing(false);
+    
+    if (res?.error) {
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      setMessage({ text: `Account successfully ${newStatus.toLowerCase()}`, type: 'success' });
+      router.refresh();
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    const res = await resetUserPassword(user.id, newPassword);
+    setIsProcessing(false);
+    
+    if (res?.error) {
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      setMessage({ text: 'Password successfully reset', type: 'success' });
+      setShowPasswordModal(false);
+      setNewPassword("");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm("PERINGATAN: Apakah Anda yakin ingin menghapus Artis dan User ini secara permanen? Seluruh lagu, royalty, dan data terkait akan terhapus dan TIDAK DAPAT dikembalikan!")) return;
+    
+    setIsProcessing(true);
+    const res = await deleteUserAction(user.id);
+    if (res?.error) {
+      setIsProcessing(false);
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      router.push('/admin/artists');
+    }
+  };
+
+  const handleResetData = async () => {
+    if (!primaryArtist.id) return;
+    if (!confirm("PERINGATAN: Anda akan mereset seluruh data streaming & royalty hasil import untuk artis ini menjadi 0. Data lagu master tetap aman. Yakin?")) return;
+    
+    setIsProcessing(true);
+    const res = await resetArtistDataAction(primaryArtist.id);
+    setIsProcessing(false);
+    
+    if (res?.error) {
+      setMessage({ text: res.error, type: 'error' });
+    } else {
+      setMessage({ text: 'Data streaming & royalty berhasil direset menjadi 0.', type: 'success' });
+      router.refresh();
+    }
+  };
+
+  return (
+    <div className="text-gray-700 pb-20 font-sans animate-fade-in w-full h-full max-w-7xl mx-auto">
+      <audio ref={audioRef} onEnded={() => setPlayingTrack(null)} />
+      
+      {/* Header & Back Button */}
+      <div className="flex items-center justify-between mb-8">
+        <Link href="/admin/all-artists" className="flex items-center gap-2 text-gray-500 hover:text-purple-600 transition">
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-bold">Back to Artists</span>
+        </Link>
+        <div className="flex items-center gap-3">
+          <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
+            user.status === 'APPROVED' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
+            user.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 
+            'bg-red-500/10 text-red-400 border-red-500/20'
+          }`}>
+            {user.status}
+          </span>
+        </div>
+      </div>
+
+      {message && (
+        <div className={`mb-6 p-4 rounded-xl border text-sm font-medium ${
+          message.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'
+        }`}>
+          {message.text}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Left Column: Profile & Actions */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Profile Card */}
+          <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 flex flex-col items-center text-center shadow-sm">
+            <img 
+              src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+              alt="Profile" 
+              className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg mb-4"
+            />
+            <h2 className="text-xl font-bold text-gray-900">{primaryArtist.stageName || user.name}</h2>
+            <p className="text-sm text-gray-500 mb-4">{user.name}</p>
+            
+            <div className="w-full space-y-3 text-sm text-left border-t border-gray-100 pt-4">
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Email</span>
+                <span className="text-gray-800 font-medium truncate">{user.email}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">WhatsApp</span>
+                <span className="text-gray-800 font-medium">{user.whatsapp || '-'}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Joined</span>
+                <span className="text-gray-800 font-medium">{new Date(user.createdAt).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Admin Actions */}
+          <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 shadow-sm">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Admin Actions</h3>
+            <div className="space-y-3">
+              {user.status !== 'APPROVED' && (
+                <button 
+                  onClick={() => handleStatusChange("APPROVED")}
+                  disabled={isProcessing}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 rounded-xl transition font-medium"
+                >
+                  <CheckCircle className="w-4 h-4" /> Activate Account
+                </button>
+              )}
+              {user.status !== 'SUSPENDED' && (
+                <button 
+                  onClick={() => handleStatusChange("SUSPENDED")}
+                  disabled={isProcessing}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl transition font-medium"
+                >
+                  <Ban className="w-4 h-4" /> Suspend Account
+                </button>
+              )}
+              
+              <button 
+                onClick={() => setShowPasswordModal(true)}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl transition font-bold shadow-sm"
+              >
+                <Key className="w-4 h-4" /> Reset Password
+              </button>
+              
+              <a 
+                href={`mailto:${user.email}`}
+                className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-xl transition font-bold shadow-sm"
+              >
+                <Mail className="w-4 h-4" /> Send Message
+              </a>
+
+              <div className="pt-4 border-t border-gray-100 mt-4 space-y-3">
+                <button 
+                  onClick={handleResetData}
+                  disabled={isProcessing || !primaryArtist.id}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl transition font-medium"
+                >
+                  <RefreshCw className="w-4 h-4" /> Reset Royalty Data
+                </button>
+                
+                <button 
+                  onClick={handleDeleteAccount}
+                  disabled={isProcessing}
+                  className="w-full flex items-center gap-3 px-4 py-3 bg-red-600/10 hover:bg-red-600/20 border border-red-600/20 text-red-500 rounded-xl transition font-medium"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete Account & Artist
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Stats & Songs */}
+        <div className="lg:col-span-3 space-y-8">
+          
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <Music className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate w-full px-1" title={stats.totalTracks.toString()}>{stats.totalTracks}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Total Songs</div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <Disc className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate w-full px-1" title={stats.totalReleases.toString()}>{stats.totalReleases}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Releases</div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <Activity className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate w-full px-1" title={stats.totalStreams.toLocaleString()}>{stats.totalStreams.toLocaleString()}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Streams</div>
+            </div>
+            <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-5 flex flex-col items-center justify-center text-center group hover:border-purple-200 transition shadow-sm overflow-hidden">
+              <DollarSign className="w-6 h-6 text-purple-500 mb-2 group-hover:scale-110 transition-transform" />
+              <div className="text-sm sm:text-base lg:text-lg font-bold text-emerald-600 truncate w-full px-1" title={formatCurrency(stats.totalRoyalties)}>{formatCurrency(stats.totalRoyalties)}</div>
+              <div className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider mt-1">Royalties</div>
+            </div>
+          </div>
+
+          {/* Songs List */}
+          <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-bold text-gray-900">Artist Songs ({filteredTracks.length})</h2>
+                {filteredTracks.length > 0 && (
+                  <button
+                    onClick={toggleSelectAll}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition border ${
+                      isAllSelected 
+                        ? "bg-purple-50 border-purple-200 text-purple-700" 
+                        : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {isAllSelected ? <CheckSquare className="w-3.5 h-3.5 text-purple-600" /> : <Square className="w-3.5 h-3.5 text-gray-400" />}
+                    <span>{isAllSelected ? "Batal Semua" : "Pilih Semua"}</span>
+                  </button>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <div className="relative flex-1 md:w-64">
+                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input 
+                    type="text" 
+                    placeholder="Search song title..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-white border border-gray-200 text-sm font-medium text-gray-800 rounded-full pl-9 pr-4 py-2 w-full md:w-64 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition"
+                  />
+                </div>
+                
+                <select 
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="bg-white border border-gray-200 text-sm font-medium text-gray-800 rounded-full px-4 py-2 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 transition cursor-pointer appearance-none shadow-sm"
+                >
+                  <option value="ALL">All Status</option>
+                  <option value="APPROVED">Approved</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-4 pb-12">
+              {filteredTracks.map((track) => {
+                const releaseId = track.releaseId || track.release?.id;
+                const isChecked = releaseId && selectedReleaseIds.includes(releaseId);
+                return (
+                  <div key={track.id} className={`flex flex-col md:flex-row items-center gap-4 bg-white border p-4 rounded-2xl hover:border-purple-300 hover:shadow-md transition shadow-sm group ${
+                    isChecked ? "border-purple-500 ring-2 ring-purple-500/20 bg-purple-50/20" : "border-gray-100"
+                  }`}>
+                    
+                    {/* Checkbox */}
+                    {releaseId && (
+                      <div 
+                        onClick={(e) => toggleSelectOne(releaseId, e)}
+                        className="cursor-pointer p-1 text-gray-400 hover:text-purple-600"
+                      >
+                        {isChecked ? <CheckSquare className="w-5 h-5 text-purple-600" /> : <Square className="w-5 h-5" />}
+                      </div>
+                    )}
+
+                    {/* Play Button & Cover */}
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 group/cover border border-gray-100">
+                      <img src={track.release?.coverArtworkUrl} alt="Cover" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition">
+                        <button 
+                          onClick={() => handlePlay(track.id, track.audioUrl)}
+                          className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-purple-600 hover:scale-110 transition shadow-lg"
+                        >
+                          {playingTrack === track.id ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-1" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Track Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-gray-900 text-lg truncate group-hover:text-purple-600 transition">{track.title}</h3>
+                      <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mt-1">
+                        <span className="bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-md">{track.release?.type}</span>
+                        <span>•</span>
+                        <span>{track.release?.genre}</span>
+                        <span>•</span>
+                        <span>{new Date(track.release?.releaseDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Additional Info (ISRC/UPC/Status) */}
+                    <div className="flex-1 min-w-0 text-sm space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 font-medium text-xs">ISRC:</span>
+                        <span className="text-gray-600 font-mono text-xs bg-gray-50 px-2 py-0.5 rounded">{track.isrc || '-'}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400 font-medium text-xs">UPC:</span>
+                        <span className="text-gray-600 font-mono text-xs bg-gray-50 px-2 py-0.5 rounded">{track.upc || '-'}</span>
+                      </div>
+                    </div>
+
+                    {/* Status & Actions */}
+                    <div className="flex flex-col items-end gap-3 ml-auto">
+                      <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${
+                        track.release?.status === 'APPROVED' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
+                        track.release?.status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 
+                        'bg-red-500/10 text-red-400 border-red-500/20'
+                      }`}>
+                        {track.release?.status}
+                      </span>
+                      
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => handlePlay(track.id, track.audioUrl)}
+                          className={`p-2 rounded-lg transition flex items-center justify-center shadow-sm ${playingTrack === track.id ? 'bg-purple-100 text-purple-600' : 'bg-gray-50 hover:bg-gray-100 text-gray-500'}`}
+                          title={playingTrack === track.id ? "Pause" : "Play"}
+                        >
+                          {playingTrack === track.id ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                        </button>
+
+                        {releaseId && (
+                          <button
+                            onClick={() => handleSingleDelete(releaseId, track.title)}
+                            disabled={isDeletingTracks}
+                            className="p-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 transition flex items-center justify-center shadow-sm"
+                            title="Hapus Lagu Ini"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {filteredTracks.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <Music className="w-12 h-12 text-gray-700 mx-auto mb-3" />
+                  <p>No tracks found matching your filter.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Action Bar for Selected Tracks */}
+      {selectedReleaseIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white px-6 py-4 rounded-3xl shadow-2xl border border-gray-800 flex items-center gap-6 animate-in fade-in slide-in-from-bottom-5">
+          <div className="flex items-center gap-3">
+            <span className="w-3 h-3 rounded-full bg-purple-500 animate-pulse" />
+            <span className="text-sm font-bold">{selectedReleaseIds.length} lagu terpilih</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSelectedReleaseIds([])}
+              className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white transition"
+            >
+              Batal
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-red-600/30 flex items-center gap-1.5 transition active:scale-95"
+            >
+              <Trash2 className="w-4 h-4" />
+              Hapus Terpilih ({selectedReleaseIds.length})
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[99999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-2">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Konfirmasi Hapus Lagu Artis</h3>
+              <p className="text-sm text-gray-500">
+                Anda akan menghapus <span className="font-bold text-red-600">{selectedReleaseIds.length} lagu terpilih</span> milik {user.name} secara permanen. Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeletingTracks}
+                className="flex-1 py-3 text-xs font-bold text-gray-600 hover:bg-gray-100 rounded-2xl transition"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={isDeletingTracks}
+                className="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-red-600/30 flex items-center justify-center gap-1.5 transition"
+              >
+                {isDeletingTracks ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {isDeletingTracks ? "Menghapus..." : "Ya, Hapus Sekarang"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white border border-gray-100 p-8 rounded-3xl w-full max-w-sm shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2"><Key className="w-5 h-5 text-purple-500"/> Reset Password</h3>
+            <p className="text-sm font-medium text-gray-500 mb-6">Enter a new password for {user.name}.</p>
+            
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <input 
+                  type="text" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New password..."
+                  required
+                  minLength={8}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition font-medium"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowPasswordModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isProcessing}
+                  className="px-5 py-2.5 rounded-xl text-sm font-bold bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-500/20 transition"
+                >
+                  Save Password
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
