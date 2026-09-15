@@ -31,13 +31,33 @@ export async function saveUploadChunkAction(formData: FormData) {
     const chunkBase64 = chunkBuffer.toString("base64");
     const id = `${uploadId}-${chunkIndex}`;
 
-    await prisma.$executeRawUnsafe(
-      `INSERT INTO temp_upload_chunks (id, upload_id, chunk_index, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET data = $4`,
-      id,
-      uploadId,
-      chunkIndex,
-      chunkBase64
-    );
+    try {
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO temp_upload_chunks (id, upload_id, chunk_index, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET data = $4`,
+        id,
+        uploadId,
+        chunkIndex,
+        chunkBase64
+      );
+    } catch (insertErr: any) {
+      // Auto-create table if missing and retry
+      await prisma.$executeRawUnsafe(`
+        CREATE TABLE IF NOT EXISTS temp_upload_chunks (
+          id TEXT PRIMARY KEY,
+          upload_id TEXT NOT NULL,
+          chunk_index INT NOT NULL,
+          data TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO temp_upload_chunks (id, upload_id, chunk_index, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET data = $4`,
+        id,
+        uploadId,
+        chunkIndex,
+        chunkBase64
+      );
+    }
 
     return { success: true };
   } catch (err: any) {
