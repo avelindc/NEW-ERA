@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { 
   submitMusicMetadataAction, 
-  initiateMultipartUploadAction, 
-  uploadPartAction, 
-  completeMultipartUploadAction, 
+  saveUploadChunkAction, 
+  assembleAndUploadToR2Action, 
   directUploadSmallFileAction 
 } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
@@ -109,7 +108,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
     }
   }
 
-  // Smart uploader: handles both small files (< 3.5MB) and chunked multipart for large audio
+  // Smart uploader: handles both small files (< 3.5MB) and chunked assembly for large audio
   async function uploadFileSmart(
     file: File, 
     type: "cover" | "audio", 
@@ -133,68 +132,50 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
       return res.publicUrl;
     }
 
-    // 2. Multipart Chunked Upload (3.5MB per chunk - bypasses Vercel 4.5MB limit safely)
+    // 2. Chunked Buffer Upload (2MB per chunk - bypasses all limits safely)
     const sizeMB = Math.round(file.size / (1024 * 1024));
     if (onProgress) onProgress(`Menyiapkan ${label} (${sizeMB}MB)...`);
 
-    const init = await initiateMultipartUploadAction({
+    const uploadId = `upl-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunk size
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const chunkBlob = file.slice(start, end);
+      const chunkFile = new File([chunkBlob], `${file.name}.part${i}`, { type: file.type });
+      const chunkIndex = i;
+
+      const progressPercent = Math.round(((i + 1) / totalChunks) * 100);
+      if (onProgress) onProgress(`Mengunggah ${label} (${progressPercent}% - Bagian ${i + 1}/${totalChunks})...`);
+
+      const chunkFd = new FormData();
+      chunkFd.append("uploadId", uploadId);
+      chunkFd.append("chunkIndex", chunkIndex.toString());
+      chunkFd.append("chunk", chunkFile);
+
+      const partRes = await saveUploadChunkAction(chunkFd);
+      if (partRes.error) {
+        throw new Error(`Gagal mengunggah bagian ${i + 1}: ${partRes.error}`);
+      }
+    }
+
+    if (onProgress) onProgress(`Menyimpan ${label} ke Cloudflare R2...`);
+    const assembleRes = await assembleAndUploadToR2Action({
+      uploadId,
+      totalChunks,
       filename: file.name,
       contentType: file.type || (type === "audio" ? "audio/mpeg" : "image/jpeg"),
       type,
       artistId
     });
 
-    if (init.error || !init.uploadId || !init.key || !init.bucket || !init.publicUrl) {
-      throw new Error(init.error || `Gagal inisialisasi upload ${label}`);
+    if (assembleRes.error || !assembleRes.publicUrl) {
+      throw new Error(assembleRes.error || `Gagal menyimpan ${label}`);
     }
 
-    const { uploadId, key, bucket, publicUrl } = init;
-    const CHUNK_SIZE = 3.5 * 1024 * 1024; // 3.5 MB chunks
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    const parts: { PartNumber: number; ETag: string }[] = [];
-
-    for (let i = 0; i < totalChunks; i++) {
-      const start = i * CHUNK_SIZE;
-      const end = Math.min(start + CHUNK_SIZE, file.size);
-      const chunkBlob = file.slice(start, end);
-      const chunkFile = new File([chunkBlob], `${file.name}.part${i + 1}`, { type: file.type });
-      const partNumber = i + 1;
-
-      const progressPercent = Math.round(((i + 1) / totalChunks) * 100);
-      if (onProgress) onProgress(`Mengunggah ${label} (${progressPercent}% - Bagian ${partNumber}/${totalChunks})...`);
-
-      const chunkFd = new FormData();
-      chunkFd.append("bucket", bucket);
-      chunkFd.append("key", key);
-      chunkFd.append("uploadId", uploadId);
-      chunkFd.append("partNumber", partNumber.toString());
-      chunkFd.append("chunk", chunkFile);
-
-      const partRes = await uploadPartAction(chunkFd);
-      if (partRes.error || !partRes.etag) {
-        throw new Error(`Gagal mengunggah bagian ${partNumber}: ${partRes.error}`);
-      }
-
-      parts.push({
-        PartNumber: partNumber,
-        ETag: partRes.etag
-      });
-    }
-
-    if (onProgress) onProgress(`Finalisasi ${label} di Cloudflare R2...`);
-    const completeRes = await completeMultipartUploadAction({
-      bucket,
-      key,
-      uploadId,
-      parts,
-      publicUrl
-    });
-
-    if (completeRes.error || !completeRes.publicUrl) {
-      throw new Error(completeRes.error || `Gagal finalisasi upload ${label}`);
-    }
-
-    return completeRes.publicUrl;
+    return assembleRes.publicUrl;
   }
 
   // Pre-validate Step 1 fields before moving to Step 2

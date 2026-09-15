@@ -12,18 +12,50 @@ import { generateR2PresignedUploadUrl } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
 
-import { 
-  CreateMultipartUploadCommand, 
-  UploadPartCommand, 
-  CompleteMultipartUploadCommand 
-} from "@aws-sdk/client-s3";
+export async function saveUploadChunkAction(formData: FormData) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
 
-export async function initiateMultipartUploadAction({
+  try {
+    const uploadId = formData.get("uploadId") as string;
+    const chunkIndex = parseInt(formData.get("chunkIndex") as string, 10);
+    const chunkFile = formData.get("chunk") as File;
+
+    if (!uploadId || isNaN(chunkIndex) || !chunkFile) {
+      return { error: "Missing chunk data" };
+    }
+
+    const chunkBuffer = Buffer.from(await chunkFile.arrayBuffer());
+    const chunkBase64 = chunkBuffer.toString("base64");
+    const id = `${uploadId}-${chunkIndex}`;
+
+    await prisma.$executeRawUnsafe(
+      `INSERT INTO temp_upload_chunks (id, upload_id, chunk_index, data) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET data = $4`,
+      id,
+      uploadId,
+      chunkIndex,
+      chunkBase64
+    );
+
+    return { success: true };
+  } catch (err: any) {
+    console.error("saveUploadChunkAction error:", err);
+    return { error: err.message || "Failed to save chunk" };
+  }
+}
+
+export async function assembleAndUploadToR2Action({
+  uploadId,
+  totalChunks,
   filename,
   contentType,
   type,
   artistId
 }: {
+  uploadId: string;
+  totalChunks: number;
   filename: string;
   contentType: string;
   type: "cover" | "audio" | "profile" | "cms";
@@ -34,128 +66,63 @@ export async function initiateMultipartUploadAction({
     return { error: "Unauthorized" };
   }
 
-  const timestamp = Date.now();
-  const cleanFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
-  const ext = cleanFilename.split(".").pop() || (type === "audio" ? "mp3" : "jpg");
-
-  let bucket = BUCKET_ASSETS;
-  let key = "";
-  let publicUrl = "";
-
-  if (type === "cover") {
-    bucket = BUCKET_ASSETS;
-    key = `covers/${artistId || session.user.id}-${timestamp}.${ext}`;
-    publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
-  } else if (type === "audio") {
-    bucket = BUCKET_RELEASES;
-    key = `audio/${artistId || session.user.id}-${timestamp}.${ext}`;
-    publicUrl = `${R2_PUBLIC_URL_RELEASES.replace(/\/$/, "")}/${key}`;
-  } else if (type === "cms") {
-    bucket = BUCKET_ASSETS;
-    key = `cms/${session.user.id}-${timestamp}.${ext}`;
-    publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
-  } else {
-    bucket = BUCKET_PROFILES;
-    key = `profiles/${session.user.id}-${timestamp}.${ext}`;
-    publicUrl = `${R2_PUBLIC_URL_PROFILES.replace(/\/$/, "")}/${key}`;
-  }
-
   try {
-    const initRes = await r2Client.send(new CreateMultipartUploadCommand({
+    const rows: any[] = await prisma.$queryRawUnsafe(
+      `SELECT data FROM temp_upload_chunks WHERE upload_id = $1 ORDER BY chunk_index ASC`,
+      uploadId
+    );
+
+    if (rows.length < totalChunks) {
+      return { error: `Missing chunks: received ${rows.length} of ${totalChunks}` };
+    }
+
+    const buffers = rows.map((r) => Buffer.from(r.data, "base64"));
+    const fullBuffer = Buffer.concat(buffers);
+
+    const timestamp = Date.now();
+    const cleanFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const ext = cleanFilename.split(".").pop() || (type === "audio" ? "mp3" : "jpg");
+
+    let bucket = BUCKET_ASSETS;
+    let key = "";
+    let publicUrl = "";
+
+    if (type === "cover") {
+      bucket = BUCKET_ASSETS;
+      key = `covers/${artistId || session.user.id}-${timestamp}.${ext}`;
+      publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
+    } else if (type === "audio") {
+      bucket = BUCKET_RELEASES;
+      key = `audio/${artistId || session.user.id}-${timestamp}.${ext}`;
+      publicUrl = `${R2_PUBLIC_URL_RELEASES.replace(/\/$/, "")}/${key}`;
+    } else if (type === "cms") {
+      bucket = BUCKET_ASSETS;
+      key = `cms/${session.user.id}-${timestamp}.${ext}`;
+      publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
+    } else {
+      bucket = BUCKET_PROFILES;
+      key = `profiles/${session.user.id}-${timestamp}.${ext}`;
+      publicUrl = `${R2_PUBLIC_URL_PROFILES.replace(/\/$/, "")}/${key}`;
+    }
+
+    // Direct PutObject to Cloudflare R2 - NO MINIMUM PART SIZE RESTRICTION!
+    await r2Client.send(new PutObjectCommand({
       Bucket: bucket,
       Key: key,
+      Body: fullBuffer,
       ContentType: contentType || (type === "audio" ? "audio/mpeg" : "image/jpeg")
     }));
 
-    return {
-      success: true,
-      uploadId: initRes.UploadId,
-      key,
-      bucket,
-      publicUrl
-    };
-  } catch (err: any) {
-    console.error("initiateMultipartUploadAction error:", err);
-    return { error: err.message || "Failed to initialize upload" };
-  }
-}
-
-export async function uploadPartAction(formData: FormData) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { error: "Unauthorized" };
-  }
-
-  try {
-    const bucket = formData.get("bucket") as string;
-    const key = formData.get("key") as string;
-    const uploadId = formData.get("uploadId") as string;
-    const partNumber = parseInt(formData.get("partNumber") as string, 10);
-    const chunkFile = formData.get("chunk") as File;
-
-    if (!bucket || !key || !uploadId || !partNumber || !chunkFile) {
-      return { error: "Missing required chunk parameters" };
-    }
-
-    const chunkBuffer = Buffer.from(await chunkFile.arrayBuffer());
-
-    const partRes = await r2Client.send(new UploadPartCommand({
-      Bucket: bucket,
-      Key: key,
-      UploadId: uploadId,
-      PartNumber: partNumber,
-      Body: chunkBuffer
-    }));
-
-    return {
-      success: true,
-      etag: partRes.ETag,
-      partNumber
-    };
-  } catch (err: any) {
-    console.error("uploadPartAction error:", err);
-    return { error: err.message || "Failed to upload chunk" };
-  }
-}
-
-export async function completeMultipartUploadAction({
-  bucket,
-  key,
-  uploadId,
-  parts,
-  publicUrl
-}: {
-  bucket: string;
-  key: string;
-  uploadId: string;
-  parts: { PartNumber: number; ETag: string }[];
-  publicUrl: string;
-}) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return { error: "Unauthorized" };
-  }
-
-  try {
-    // Sort parts by PartNumber ascending
-    const sortedParts = [...parts].sort((a, b) => a.PartNumber - b.PartNumber);
-
-    await r2Client.send(new CompleteMultipartUploadCommand({
-      Bucket: bucket,
-      Key: key,
-      UploadId: uploadId,
-      MultipartUpload: {
-        Parts: sortedParts
-      }
-    }));
+    // Clean up temporary chunks from DB asynchronously
+    prisma.$executeRawUnsafe(`DELETE FROM temp_upload_chunks WHERE upload_id = $1`, uploadId).catch((e) => console.error("Clean chunks err:", e));
 
     return {
       success: true,
       publicUrl
     };
   } catch (err: any) {
-    console.error("completeMultipartUploadAction error:", err);
-    return { error: err.message || "Failed to complete upload" };
+    console.error("assembleAndUploadToR2Action error:", err);
+    return { error: err.message || "Failed to assemble and upload" };
   }
 }
 
