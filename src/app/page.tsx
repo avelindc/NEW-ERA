@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { 
   Sparkles, 
   Play, 
@@ -518,17 +518,32 @@ export default async function LandingPage() {
             </div>
 
             <div>
+            <div>
               <h4 className="font-display text-lg text-white mb-4 tracking-wider">CONTACT</h4>
-              <ul className="space-y-2 text-xs text-gray-400">
-                <li>Email: support@breakoutmusicrecord.com</li>
-                <li>WhatsApp: +62 812-3456-7890</li>
-                <li>Jakarta, Indonesia</li>
-              </ul>
+              {cms.contact?.isActive !== false && (
+                <ul className="space-y-2 text-xs text-gray-400">
+                  {cms.contact?.email && <li>Email: {cms.contact.email}</li>}
+                  {cms.contact?.whatsapp && (
+                    <li>
+                      WhatsApp:{" "}
+                      <a
+                        href={`https://wa.me/${cms.contact.whatsapp.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-[#D4FF00] transition"
+                      >
+                        {cms.contact.whatsapp}
+                      </a>
+                    </li>
+                  )}
+                  {cms.contact?.address && <li>{cms.contact.address}</li>}
+                </ul>
+              )}
             </div>
           </div>
 
           <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-600 gap-4">
-            <p>{cms.footer.copyright || "Ã‚Â© 2026 BREAKOUT Music Distribution. All rights reserved."}</p>
+            <p>{cms.footer.copyright || "\u00A9 2026 BREAKOUT Music Distribution. All rights reserved."}</p>
             <div className="flex gap-6">
               <Link href="#" className="hover:text-gray-400">Terms of Service</Link>
               <Link href="#" className="hover:text-gray-400">Privacy Policy</Link>
@@ -540,3 +555,4 @@ export default async function LandingPage() {
     </main>
   );
 }
+
