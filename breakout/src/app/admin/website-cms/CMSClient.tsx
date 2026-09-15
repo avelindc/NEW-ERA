@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { CMSData, saveLandingPageCMS } from "@/app/actions/cms";
@@ -610,7 +610,6 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                               src={resolveMediaUrl(item.avatarUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }} 
                               alt="Avatar" 
                               className="w-10 h-10 rounded-full object-cover border" 
-                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                             />
                             <button 
                               type="button" 
@@ -682,7 +681,6 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                               src={resolveMediaUrl(item.logoUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }} 
                               alt="Logo" 
                               className="h-8 w-auto object-contain max-w-[120px]" 
-                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                             />
                             <button 
                               type="button" 
