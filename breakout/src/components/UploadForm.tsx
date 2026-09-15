@@ -165,9 +165,6 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           console.log("[UploadForm] Uploading cover artwork directly to R2...", coverPresign.publicUrl);
           const coverPutRes = await fetch(coverPresign.uploadUrl, {
             method: "PUT",
-            headers: {
-              "Content-Type": coverFile.type || "image/jpeg"
-            },
             body: coverFile
           });
 
@@ -193,9 +190,6 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           console.log("[UploadForm] Uploading audio directly to R2...", audioPresign.publicUrl);
           const audioPutRes = await fetch(audioPresign.uploadUrl, {
             method: "PUT",
-            headers: {
-              "Content-Type": audioFile.type || "audio/mpeg"
-            },
             body: audioFile
           });
 

@@ -33,18 +33,14 @@ export async function generateR2PresignedUploadUrl(
       return { success: false, error: `R2 Configuration Error: ${validation.error}` };
     }
 
-    // FIXED: Create PutObjectCommand with exact Content-Type from frontend
+    // Create PutObjectCommand for universal upload
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      ContentType: contentType, // Use exact Content-Type from frontend request
     });
 
     const signedUrl = await getSignedUrl(r2Client, command, { 
       expiresIn,
-      // FIXED: Add explicit signing options for R2 compatibility
-      signableHeaders: new Set(['host', 'content-type']),
-      unhoistableHeaders: new Set(), // Empty set for R2 compatibility
     });
 
     return { success: true, url: signedUrl };
