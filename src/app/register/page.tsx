@@ -1,4 +1,5 @@
-﻿import { isMaintenanceActive } from "@/lib/maintenance";
+export const dynamic = "force-dynamic";
+import { isMaintenanceActive } from "@/lib/maintenance";
 import { RegisterClient } from "./RegisterClient";
 import { redirect } from "next/navigation";
 
