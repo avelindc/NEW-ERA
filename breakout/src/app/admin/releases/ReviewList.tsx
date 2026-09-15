@@ -85,7 +85,7 @@ function resolveMediaUrl(url: string | null | undefined): string {
 export default function ReviewList({ initialReleases }: { initialReleases: ReviewItem[] }) {
   const [releases, setReleases] = useState<ReviewItem[]>(initialReleases);
   const [selected, setSelected] = useState<ReviewItem | null>(null);
-  const [filter, setFilter] = useState<string>("ALL");
+  const [filter, setFilter] = useState<string>("PENDING");
   const [search, setSearch] = useState<string>("");
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
@@ -209,7 +209,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
         releaseToUpdate.title
       );
       if (res.success) {
-        setReleases(releases.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
+        setReleases(releases.filter((r) => r.id !== id));
         if (selected && selected.id === id) {
           setSelected(null);
         }
