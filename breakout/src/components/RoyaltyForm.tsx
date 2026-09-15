@@ -1,25 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Save, Loader2 } from "lucide-react";
-import { useFormStatus } from "react-dom";
+import { useState, useTransition } from "react";
+import { Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { addRoyaltyAction } from "@/app/actions/royalties";
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} className="w-full py-3.5 mt-6 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold hover:shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none">
-      {pending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} 
-      {pending ? "Saving Data..." : "Save Royalty Data"}
-    </button>
-  );
-}
-
 export function RoyaltyForm({ artists }: { artists: any[] }) {
+  const [isPending, startTransition] = useTransition();
   const [selectedArtistId, setSelectedArtistId] = useState("");
   const [revenue, setRevenue] = useState<number | "">("");
   const [cut, setCut] = useState<number | "">(0);
-  
+  const [result, setResult] = useState<{ success?: boolean; error?: string } | null>(null);
+
   const [monthYear, setMonthYear] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -33,8 +24,33 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
   const selectedMonth = monthYear ? parseInt(monthYear.split("-")[1]) : "";
   const selectedYear = monthYear ? parseInt(monthYear.split("-")[0]) : "";
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setResult(null);
+    const formData = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+
+    startTransition(async () => {
+      try {
+        const res = await addRoyaltyAction(formData);
+        if (res && res.error) {
+          setResult({ error: res.error });
+        } else {
+          setResult({ success: true });
+          // Reset form fields
+          setSelectedArtistId("");
+          setRevenue("");
+          setCut(0);
+          form.reset();
+        }
+      } catch (err) {
+        setResult({ error: "Terjadi kesalahan, coba lagi" });
+      }
+    });
+  }
+
   return (
-    <form action={async (formData) => { await addRoyaltyAction(formData); }} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input type="hidden" name="month" value={selectedMonth} />
       <input type="hidden" name="year" value={selectedYear} />
       <div className="space-y-1">
@@ -57,7 +73,6 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
           })}
         </select>
       </div>
-
 
       <div>
         <div className="space-y-1">
@@ -115,7 +130,28 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
         </div>
       </div>
 
-      <SubmitButton />
+      {result?.error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm font-medium">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {result.error}
+        </div>
+      )}
+
+      {result?.success && (
+        <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 text-sm font-medium">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          Data royalti berhasil disimpan!
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isPending}
+        className="w-full py-3.5 mt-6 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold hover:shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+      >
+        {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+        {isPending ? "Menyimpan..." : "Save Royalty Data"}
+      </button>
     </form>
   );
 }
