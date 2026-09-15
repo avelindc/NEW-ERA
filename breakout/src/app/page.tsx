@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { 
   Sparkles, 
   Play, 
@@ -198,7 +198,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="mt-8">
-                <NeonArrowButton href="#features" text="LEARN MORE" size="normal" />
+                <NeonArrowButton href="#pricing" text="LEARN MORE" size="normal" />
               </div>
             </div>
 
@@ -435,6 +435,90 @@ export default async function LandingPage() {
         )}
 
         {/* ========================================================================= */}
+        {/* SECTION 7: PRICING SECTION */}
+        {/* ========================================================================= */}
+        <section id="pricing" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-2">PLANS & PRICING</span>
+            <h2 className="font-display text-4xl sm:text-6xl uppercase tracking-tight text-white leading-none">
+              SIMPLE. TRANSPARENT.<br />BUILT FOR ARTISTS.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
+            
+            {/* Basic Plan */}
+            <div className="rounded-[32px] bg-[#140C26] border border-white/10 p-8 flex flex-col justify-between shadow-2xl">
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-gray-400 block mb-1">STARTER</span>
+                <h3 className="font-display text-3xl text-white">BASIC ARTIST</h3>
+                <div className="my-6">
+                  <span className="font-display text-5xl text-white">Rp 0</span>
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1">/ LIFETIME</span>
+                </div>
+                <ul className="space-y-3 text-sm text-gray-300">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Distribusi ke 150+ Toko Musik</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Royalti Transparan 80%</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Dashboard Statistik</li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <Link href="/register" className="w-full py-3.5 rounded-full border border-white/20 hover:border-white text-white font-black text-xs uppercase tracking-wider text-center block transition">
+                  GET STARTED FREE
+                </Link>
+              </div>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="rounded-[32px] bg-white text-black p-8 flex flex-col justify-between shadow-2xl relative ring-4 ring-[#D4FF00]">
+              <div className="absolute -top-3.5 right-8 px-4 py-1 rounded-full bg-[#D4FF00] text-black font-black text-[10px] tracking-widest uppercase shadow-md">
+                RECOMMENDED
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-[#7000FF] block mb-1">EXCLUSIVE</span>
+                <h3 className="font-display text-3xl text-gray-950">PRO ARTIST</h3>
+                <div className="my-6">
+                  <span className="font-display text-5xl text-gray-950">Rp 99K</span>
+                  <span className="text-gray-600 text-xs font-bold uppercase tracking-wider ml-1">/ TAHUN</span>
+                </div>
+                <ul className="space-y-3 text-sm text-gray-800 font-medium">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> 100% Royalti Penuh Milik Anda</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> Unlimited Rilis Lagu & Cover</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> Prioritas Review 24-48 Jam</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> Gratis Kode ISRC & UPC Resmi</li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <NeonArrowButton href="/register" text="UPGRADE TO PRO" size="normal" />
+              </div>
+            </div>
+
+            {/* Label Plan */}
+            <div className="rounded-[32px] bg-[#140C26] border border-white/10 p-8 flex flex-col justify-between shadow-2xl">
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-[#D4FF00] block mb-1">RECORD LABEL</span>
+                <h3 className="font-display text-3xl text-white">LABEL & COLLECTIVE</h3>
+                <div className="my-6">
+                  <span className="font-display text-5xl text-white">Rp 299K</span>
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1">/ TAHUN</span>
+                </div>
+                <ul className="space-y-3 text-sm text-gray-300">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Manajemen Multi-Artis Tanpa Batas</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Otomasi Split Pembayaran Artis</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Dedicated Account Manager</li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <Link href="/register" className="w-full py-3.5 rounded-full border border-white/20 hover:border-white text-white font-black text-xs uppercase tracking-wider text-center block transition">
+                  REGISTER LABEL
+                </Link>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
         {/* SECTION 8: FAQ ACCORDION */}
         {/* ========================================================================= */}
         <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
@@ -511,7 +595,7 @@ export default async function LandingPage() {
               <ul className="space-y-2 text-xs font-bold uppercase tracking-wider text-gray-400">
                 <li><Link href="#about" className="hover:text-[#D4FF00] transition">About</Link></li>
                 <li><Link href="#distribution" className="hover:text-[#D4FF00] transition">Distribution</Link></li>
-                
+                <li><Link href="#pricing" className="hover:text-[#D4FF00] transition">Pricing</Link></li>
                 <li><Link href="/login" className="hover:text-[#D4FF00] transition">Artist Login</Link></li>
                 <li><Link href="/register" className="hover:text-[#D4FF00] transition">Create Account</Link></li>
               </ul>
@@ -519,16 +603,30 @@ export default async function LandingPage() {
 
             <div>
               <h4 className="font-display text-lg text-white mb-4 tracking-wider">CONTACT</h4>
-              <ul className="space-y-2 text-xs text-gray-400">
-                <li>Email: support@breakoutmusicrecord.com</li>
-                <li>WhatsApp: +62 812-3456-7890</li>
-                <li>Jakarta, Indonesia</li>
-              </ul>
+              {cms.contact?.isActive !== false && (
+                <ul className="space-y-2 text-xs text-gray-400">
+                  {cms.contact?.email && <li>Email: {cms.contact.email}</li>}
+                  {cms.contact?.whatsapp && (
+                    <li>
+                      WhatsApp:{" "}
+                      <a
+                        href={`https://wa.me/${cms.contact.whatsapp.replace(/[^0-9]/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-[#D4FF00] transition"
+                      >
+                        {cms.contact.whatsapp}
+                      </a>
+                    </li>
+                  )}
+                  {cms.contact?.address && <li>{cms.contact.address}</li>}
+                </ul>
+              )}
             </div>
           </div>
 
           <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-600 gap-4">
-            <p>{cms.footer.copyright || "Ã‚Â© 2026 BREAKOUT Music Distribution. All rights reserved."}</p>
+            <p>{cms.footer.copyright || "© 2026 BREAKOUT Music Distribution. All rights reserved."}</p>
             <div className="flex gap-6">
               <Link href="#" className="hover:text-gray-400">Terms of Service</Link>
               <Link href="#" className="hover:text-gray-400">Privacy Policy</Link>

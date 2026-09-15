@@ -1,4 +1,4 @@
-﻿"use server";
+"use server";
 
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -260,22 +260,22 @@ const defaultCMSData: CMSData = {
   ],
   partners: [],
   contact: {
-    email: "support@breakoutmusic.online",
-    whatsapp: "+6281234567890",
-    address: "Jakarta, Indonesia",
+    email: "breakoutnewera.business@gmail.com",
+    whatsapp: "+6281330923740",
+    address: "Pati, Jawa Tengah, Indonesia",
     isActive: true,
   },
   footer: {
     aboutText: "Breakout Music Distribution. Empowering independent artists worldwide.",
-    copyright: "© 2026 Breakout. All rights reserved."
+    copyright: "© 2026 Breakout Music Record. All rights reserved."
   },
   socialMedia: {
-    instagram: "https://instagram.com/",
-    tiktok: "https://tiktok.com/",
-    youtube: "https://youtube.com/",
+    instagram: "https://www.instagram.com/breakoutindo_?igsh=MTVzMTh6YXVtNmcxaw==",
+    tiktok: "https://www.tiktok.com/@breakoutmusicrecord?_r=1&_t=ZS-98DuwRSQUAX",
+    youtube: "https://youtube.com/@breakoutmusicrecord?si=fZj78MwmlwMXjP3U",
     spotify: "https://spotify.com/",
-    whatsapp: "+6281234567890",
-    email: "support@breakoutmusic.online",
+    whatsapp: "+6281330923740",
+    email: "breakoutnewera.business@gmail.com",
   },
   stats: {
     totalArtists: null,
