@@ -14,6 +14,7 @@ interface CardData {
   whatsapp: string | null;
   nik: string | null;
   address: string | null;
+  youtubeUrl: string | null;
   status: string;
   createdAt: string;
   ktpUrl: string | null;
@@ -35,7 +36,7 @@ function formatDate(iso: string) {
 
 function maskNIK(nik: string) {
   if (nik.length <= 6) return nik;
-  return nik.slice(0, 4) + " •••• •••• " + nik.slice(-4);
+  return nik.slice(0, 4) + " â€¢â€¢â€¢â€¢ â€¢â€¢â€¢â€¢ " + nik.slice(-4);
 }
 
 function StatusDot({ status }: { status: string }) {
@@ -241,6 +242,11 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
                 <InfoRow icon={<Phone className="w-4 h-4" />} label="WhatsApp" value={selectedCard.whatsapp || "Tidak diisi"} />
                 <InfoRow icon={<CreditCard className="w-4 h-4" />} label="NIK" value={selectedCard.nik ? maskNIK(selectedCard.nik) : "Tidak diisi"} />
                 <InfoRow icon={<MapPin className="w-4 h-4" />} label="Alamat" value={selectedCard.address || "Tidak diisi"} />
+                <InfoRow 
+                  icon={<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-youtube"><path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17"/><path d="m10 15 5-3-5-3z"/></svg>} 
+                  label="YouTube" 
+                  value={selectedCard.youtubeUrl ? <a href={selectedCard.youtubeUrl} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">{selectedCard.youtubeUrl}</a> : "Tidak diisi"} 
+                />
               </div>
 
               {/* Documents */}
@@ -250,7 +256,7 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
                   {/* KTP */}
                   {selectedCard.ktpUrl ? (
                     <button
-                      onClick={() => setDocViewer({ url: selectedCard.ktpUrl!, label: `KTP — ${selectedCard.name}` })}
+                      onClick={() => setDocViewer({ url: selectedCard.ktpUrl!, label: `KTP â€” ${selectedCard.name}` })}
                       className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 hover:bg-blue-100 transition group text-left w-full"
                     >
                       <Eye className="w-4 h-4 text-blue-600 animate-pulse" />
@@ -290,7 +296,7 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
                         </div>
 
                         <p className="text-center text-[10px] font-bold text-green-600 bg-green-50 py-1.5 rounded-lg border border-green-200 mt-2">
-                          ✓ Ditandatangani secara digital oleh {selectedCard.name}
+                          âœ“ Ditandatangani secara digital oleh {selectedCard.name}
                         </p>
                       </div>
                       
@@ -406,7 +412,7 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
   );
 }
 
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
       <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">

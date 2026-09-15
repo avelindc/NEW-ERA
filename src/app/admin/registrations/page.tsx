@@ -62,6 +62,7 @@ export default async function AdminRegistrationsPage() {
         whatsapp: user.whatsapp || null,
         nik: user.nik || null,
         address: user.address || null,
+        youtubeUrl: user.youtubeUrl || null,
         status: user.status,
         createdAt: user.createdAt.toISOString(),
         ktpUrl,
@@ -80,9 +81,9 @@ export default async function AdminRegistrationsPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Identity Verification</h1>
         <p className="text-gray-500 text-sm">
           <span className="text-yellow-600 font-semibold">{pendingCount} pending</span>
-          {" · "}
+          {" Â· "}
           <span className="text-green-600 font-semibold">{approvedCount} approved</span>
-          {" · "}
+          {" Â· "}
           <span className="font-semibold">{allUsers.length} total</span>
         </p>
       </div>
