@@ -55,18 +55,7 @@ export function RegisterClient() {
         
         {/* Header Logo */}
         <div className="flex flex-col items-center mb-6">
-          <div className="relative w-14 h-12 flex items-center justify-center my-1">
-            <div className="w-9 h-3.5 bg-gradient-to-r from-[#9D4EDD] to-[#C77DFF] rounded-full transform -rotate-45 shadow-[0_0_18px_rgba(199,125,255,0.6)] -translate-y-1.5 -translate-x-1" />
-            <div className="w-9 h-3.5 bg-gradient-to-r from-[#7B2CBF] to-[#9D4EDD] rounded-full transform -rotate-45 shadow-[0_0_18px_rgba(157,78,221,0.6)] translate-y-1.5 translate-x-1" />
-          </div>
-
-          <span className="font-extrabold text-white text-base tracking-[0.28em] uppercase mt-2">
-            BMR
-          </span>
-
-          <h1 className="text-xl sm:text-2xl font-bold text-white/95 mt-3 text-center tracking-tight">
-            Create Account, Breakout
-          </h1>
+          <img src="/logo-bne.png" alt="Breakout New Era" className="h-16 w-auto object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]" />
         </div>
 
         {/* Error Message */}
