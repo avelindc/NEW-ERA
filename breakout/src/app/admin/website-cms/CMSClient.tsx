@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { CMSData, saveLandingPageCMS } from "@/app/actions/cms";
 import { uploadCMSImageAction } from "@/app/actions/cmsUpload";
-import { getPresignedUploadUrlAction } from "@/app/actions/upload";
 import { 
   Save, Loader2, Image as ImageIcon, Plus, Trash2, 
   Settings, LayoutTemplate, Info, Star, CreditCard, MessageCircle, Link as LinkIcon, Phone,
@@ -48,41 +47,11 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
     setUploadingField(activeFieldId);
     
     try {
-      let imageUrl = "";
-
-      // 1. Direct Presigned Cloudflare R2 Upload
-      try {
-        const presign = await getPresignedUploadUrlAction({
-          filename: file.name,
-          contentType: file.type || "image/jpeg",
-          type: "cms"
-        });
-
-        if (presign.success && presign.uploadUrl && presign.publicUrl) {
-          const putRes = await fetch(presign.uploadUrl, {
-            method: "PUT",
-            headers: {
-              "Content-Type": file.type || "image/jpeg"
-            },
-            body: file
-          });
-
-          if (putRes.ok) {
-            imageUrl = presign.publicUrl;
-          }
-        }
-      } catch (directErr) {
-        console.warn("Direct R2 upload warning:", directErr);
-      }
-
-      // 2. Server Action Fallback
-      if (!imageUrl) {
-        const uploadFormData = new FormData();
-        uploadFormData.append("file", file);
-        const res = await uploadCMSImageAction(uploadFormData);
-        if (res.error) throw new Error(res.error);
-        imageUrl = res.url || "";
-      }
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      const res = await uploadCMSImageAction(uploadFormData);
+      if (res.error) throw new Error(res.error);
+      const imageUrl = res.url || "";
 
       setUploadingField(null);
 

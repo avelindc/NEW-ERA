@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { submitMusicMetadataAction, getPresignedUploadUrlAction } from "@/app/actions/upload";
+import { 
+  submitMusicMetadataAction, 
+  initiateMultipartUploadAction, 
+  uploadPartAction, 
+  completeMultipartUploadAction, 
+  directUploadSmallFileAction 
+} from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
@@ -51,6 +57,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [uploadStatusText, setUploadStatusText] = useState("Memproses data...");
 
   const [coverFileName, setCoverFileName] = useState("");
   const [audioFileName, setAudioFileName] = useState("");
@@ -102,6 +109,94 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
     }
   }
 
+  // Smart uploader: handles both small files (< 3.5MB) and chunked multipart for large audio
+  async function uploadFileSmart(
+    file: File, 
+    type: "cover" | "audio", 
+    artistId: string, 
+    onProgress?: (msg: string) => void
+  ): Promise<string> {
+    const label = type === "cover" ? "Cover Artwork" : "File Audio";
+
+    // 1. Direct small file upload if <= 3.5MB
+    if (file.size <= 3.5 * 1024 * 1024) {
+      if (onProgress) onProgress(`Mengunggah ${label}...`);
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("type", type);
+      fd.append("artistId", artistId);
+      
+      const res = await directUploadSmallFileAction(fd);
+      if (res.error || !res.publicUrl) {
+        throw new Error(res.error || `Gagal mengunggah ${label}`);
+      }
+      return res.publicUrl;
+    }
+
+    // 2. Multipart Chunked Upload (3.5MB per chunk - bypasses Vercel 4.5MB limit safely)
+    const sizeMB = Math.round(file.size / (1024 * 1024));
+    if (onProgress) onProgress(`Menyiapkan ${label} (${sizeMB}MB)...`);
+
+    const init = await initiateMultipartUploadAction({
+      filename: file.name,
+      contentType: file.type || (type === "audio" ? "audio/mpeg" : "image/jpeg"),
+      type,
+      artistId
+    });
+
+    if (init.error || !init.uploadId || !init.key || !init.bucket || !init.publicUrl) {
+      throw new Error(init.error || `Gagal inisialisasi upload ${label}`);
+    }
+
+    const { uploadId, key, bucket, publicUrl } = init;
+    const CHUNK_SIZE = 3.5 * 1024 * 1024; // 3.5 MB chunks
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const parts: { PartNumber: number; ETag: string }[] = [];
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const chunkBlob = file.slice(start, end);
+      const chunkFile = new File([chunkBlob], `${file.name}.part${i + 1}`, { type: file.type });
+      const partNumber = i + 1;
+
+      const progressPercent = Math.round(((i + 1) / totalChunks) * 100);
+      if (onProgress) onProgress(`Mengunggah ${label} (${progressPercent}% - Bagian ${partNumber}/${totalChunks})...`);
+
+      const chunkFd = new FormData();
+      chunkFd.append("bucket", bucket);
+      chunkFd.append("key", key);
+      chunkFd.append("uploadId", uploadId);
+      chunkFd.append("partNumber", partNumber.toString());
+      chunkFd.append("chunk", chunkFile);
+
+      const partRes = await uploadPartAction(chunkFd);
+      if (partRes.error || !partRes.etag) {
+        throw new Error(`Gagal mengunggah bagian ${partNumber}: ${partRes.error}`);
+      }
+
+      parts.push({
+        PartNumber: partNumber,
+        ETag: partRes.etag
+      });
+    }
+
+    if (onProgress) onProgress(`Finalisasi ${label} di Cloudflare R2...`);
+    const completeRes = await completeMultipartUploadAction({
+      bucket,
+      key,
+      uploadId,
+      parts,
+      publicUrl
+    });
+
+    if (completeRes.error || !completeRes.publicUrl) {
+      throw new Error(completeRes.error || `Gagal finalisasi upload ${label}`);
+    }
+
+    return completeRes.publicUrl;
+  }
+
   // Pre-validate Step 1 fields before moving to Step 2
   const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,77 +231,22 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
       const audioFile = formData.get("audioFile") as File;
       
       if (coverFile && audioFile && coverFile.size > 0 && audioFile.size > 0) {
-        // Find selected artist ID
         const primaryArtistId = formData.get("primaryArtistId") as string;
         if (!primaryArtistId) throw new Error("Silakan pilih artis terlebih dahulu.");
 
-        console.log("[UploadForm] [Tahap 1] Getting presigned URLs...");
-        console.log("[UploadForm] Cover:", coverFile.name, `${Math.round(coverFile.size / 1024)}KB`);
-        console.log("[UploadForm] Audio:", audioFile.name, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
-        console.log("[UploadForm] Artist ID:", primaryArtistId);
+        console.log("[UploadForm] Uploading files to Cloudflare R2 via Same-Origin Multipart/Direct...");
         
-        let coverUrl = "";
-        let audioUrl = "";
+        // 1. Upload Cover Artwork
+        const coverUrl = await uploadFileSmart(coverFile, "cover", primaryArtistId, setUploadStatusText);
+        console.log("[UploadForm] ✓ Cover uploaded:", coverUrl);
+
+        // 2. Upload Audio File (with Chunking)
+        const audioUrl = await uploadFileSmart(audioFile, "audio", primaryArtistId, setUploadStatusText);
+        console.log("[UploadForm] ✓ Audio uploaded:", audioUrl);
         
-        try {
-          // 1. Upload Cover directly to Cloudflare R2 via Presigned URL
-          console.log("[UploadForm] Getting presigned URL for cover artwork...");
-          const coverPresign = await getPresignedUploadUrlAction({
-            filename: coverFile.name,
-            contentType: coverFile.type || "image/jpeg",
-            type: "cover",
-            artistId: primaryArtistId
-          });
-
-          if (coverPresign.error || !coverPresign.uploadUrl || !coverPresign.publicUrl) {
-            throw new Error(coverPresign.error || "Gagal mendapatkan izin upload cover artwork.");
-          }
-
-          console.log("[UploadForm] Uploading cover artwork directly to R2...", coverPresign.publicUrl);
-          const coverPutRes = await fetch(coverPresign.uploadUrl, {
-            method: "PUT",
-            body: coverFile
-          });
-
-          if (!coverPutRes.ok) {
-            throw new Error(`Cover upload gagal: ${coverPutRes.status} ${coverPutRes.statusText}`);
-          }
-          coverUrl = coverPresign.publicUrl;
-          console.log("[UploadForm] ✓ Cover uploaded successfully:", coverUrl);
-
-          // 2. Upload Audio directly to Cloudflare R2 via Presigned URL (No Vercel 4.5MB limit!)
-          console.log("[UploadForm] Getting presigned URL for audio file...");
-          const audioPresign = await getPresignedUploadUrlAction({
-            filename: audioFile.name,
-            contentType: audioFile.type || "audio/mpeg",
-            type: "audio",
-            artistId: primaryArtistId
-          });
-
-          if (audioPresign.error || !audioPresign.uploadUrl || !audioPresign.publicUrl) {
-            throw new Error(audioPresign.error || "Gagal mendapatkan izin upload audio file.");
-          }
-
-          console.log("[UploadForm] Uploading audio directly to R2...", audioPresign.publicUrl);
-          const audioPutRes = await fetch(audioPresign.uploadUrl, {
-            method: "PUT",
-            body: audioFile
-          });
-
-          if (!audioPutRes.ok) {
-            throw new Error(`Audio upload gagal: ${audioPutRes.status} ${audioPutRes.statusText}`);
-          }
-          audioUrl = audioPresign.publicUrl;
-          console.log("[UploadForm] ✓ Audio uploaded successfully:", audioUrl);
-
-        } catch (e: any) {
-          console.error("[UploadForm] Direct R2 Upload Exception:", e);
-          throw new Error(`[Tahap 1] Gagal upload file: ${e.message || "Error saat upload ke R2"}`);
-        }
+        setUploadStatusText("Menyimpan rincian rilis ke database...");
         
-        console.log("[UploadForm] [Tahap 1] Upload berhasil ke Cloudflare R2");
-        
-        // 2. Submit Metadata with uploaded URLs
+        // 3. Submit Metadata with uploaded URLs
         const metadata = {
           title: formData.get("title"),
           genre: formData.get("genre"),
@@ -220,20 +260,13 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           upc: formData.get("upc"),
           releaseDateStr: formData.get("releaseDate"),
           tiktokClipStart: tiktokClipStart,
-          // Pass the URLs from upload responses
           coverUrl: coverUrl,
           audioUrl: audioUrl
         };
         
-        let res;
-        try {
-          console.log("[UploadForm] Calling submitMusicMetadataAction...");
-          res = await submitMusicMetadataAction(metadata);
-          console.log("[UploadForm] submitMusicMetadataAction response:", res);
-        } catch (e: any) {
-          console.error("[UploadForm] submitMusicMetadataAction exception:", e);
-          throw new Error(`[Tahap 2] Gagal menyimpan ke Database: ${e.message}`);
-        }
+        console.log("[UploadForm] Calling submitMusicMetadataAction...");
+        const res = await submitMusicMetadataAction(metadata);
+        console.log("[UploadForm] submitMusicMetadataAction response:", res);
 
         setLoading(false);
 
@@ -258,6 +291,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
       setStep(2); // Go back to allow retry
     }
   }
+
 
   return (
     <>
@@ -608,14 +642,17 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
 
             <div className="space-y-2">
               <h3 className="text-2xl font-bold">Sedang Mengirim Musik Anda</h3>
-              <p className="text-sm text-gray-400 max-w-sm mx-auto">
-                Tolong jangan tutup atau segarkan halaman ini. Kami sedang mengupload berkas media & cover ke server.
+              <p className="text-sm text-teal-300 font-medium max-w-sm mx-auto animate-pulse">
+                {uploadStatusText}
+              </p>
+              <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                Tolong jangan tutup atau segarkan halaman ini saat proses pengunggahan ke Cloudflare R2 berlangsung.
               </p>
             </div>
 
             {/* Progress Slide Loading Bar */}
-            <div className="w-full max-w-xs bg-white/10 h-2 rounded-full overflow-hidden relative shadow-inner">
-              <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-600 rounded-full animate-[loading-bar_10s_ease-out_infinite]" style={{ width: "95%" }}></div>
+            <div className="w-full max-w-xs bg-white/10 h-2.5 rounded-full overflow-hidden relative shadow-inner">
+              <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-teal-400 via-blue-500 to-purple-600 rounded-full animate-pulse" style={{ width: "100%" }}></div>
             </div>
           </div>
 
