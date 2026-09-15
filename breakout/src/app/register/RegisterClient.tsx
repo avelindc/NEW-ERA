@@ -45,18 +45,17 @@ export function RegisterClient() {
   }
 
   return (
-    <main className="min-h-screen w-full relative flex items-center justify-center p-4 bg-[#080214] overflow-hidden py-12">
+    <main className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden py-12">
       
-      {/* 3D Purple Fluid Silk Ambient Glow & Mesh Waves */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[20%] -left-[15%] w-[80vw] h-[80vw] max-w-[900px] max-h-[900px] rounded-full bg-gradient-to-br from-[#7209B7]/40 via-[#560BAD]/25 to-transparent blur-[120px] transform -rotate-12" />
-        <div className="absolute top-[20%] -right-[15%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] rounded-full bg-gradient-to-bl from-[#B5179E]/35 via-[#7209B7]/30 to-transparent blur-[110px]" />
-        <div className="absolute -bottom-[25%] left-[10%] w-[90vw] h-[70vw] max-w-[1000px] rounded-full bg-gradient-to-t from-[#480CA8]/40 via-[#3F37C9]/20 to-transparent blur-[130px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/15 via-[#080214]/60 to-[#080214]/95" />
+      {/* Full-screen background photo */}
+      <div className="absolute inset-0 z-0">
+        <img src="/auth-bg.jpg" alt="Background" className="w-full h-full object-cover object-center" />
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-black/40" />
       </div>
 
       {/* Glassmorphic Card Container */}
-      <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] rounded-[38px] p-7 sm:p-10 backdrop-blur-2xl bg-white/[0.04] border border-white/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.25)] flex flex-col my-6">
+      <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] rounded-[38px] p-7 sm:p-10 backdrop-blur-2xl bg-white/10 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.3)] flex flex-col my-6">
         
         {/* Header Logo */}
         <div className="flex flex-col items-center mb-6">
@@ -85,80 +84,80 @@ export function RegisterClient() {
         <form onSubmit={handleInitialSubmit} className="flex flex-col gap-4">
           
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300 ml-1">Full Name (sesuai KTP)</label>
+            <label className="text-xs font-medium text-white/80 ml-1">Full Name (sesuai KTP)</label>
             <input 
               name="name" 
               type="text" 
               required
-              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              className="w-full bg-white/10 border border-white/30 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
               placeholder="John Doe"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300 ml-1">Email address</label>
+            <label className="text-xs font-medium text-white/80 ml-1">Email address</label>
             <input 
               name="email" 
               type="email" 
               required
-              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              className="w-full bg-white/10 border border-white/30 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
               placeholder="you@example.com"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300 ml-1">Nomor WhatsApp</label>
+            <label className="text-xs font-medium text-white/80 ml-1">Nomor WhatsApp</label>
             <input 
               name="whatsapp" 
               type="tel" 
               required
-              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              className="w-full bg-white/10 border border-white/30 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
               placeholder="081234567890"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300 ml-1">Link YouTube Artis</label>
+            <label className="text-xs font-medium text-white/80 ml-1">Link YouTube Artis</label>
             <input 
               name="youtubeUrl" 
               type="url" 
               required
-              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              className="w-full bg-white/10 border border-white/30 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
               placeholder="https://youtube.com/@artist"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300 ml-1">Alamat Lengkap (Sesuai KTP)</label>
+            <label className="text-xs font-medium text-white/80 ml-1">Alamat Lengkap (Sesuai KTP)</label>
             <textarea 
               name="address" 
               required
               rows={2}
-              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all resize-none" 
+              className="w-full bg-white/10 border border-white/30 rounded-2xl px-4 py-3 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all resize-none" 
               placeholder="Jl. Contoh No. 123..."
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300 ml-1">Password</label>
+            <label className="text-xs font-medium text-white/80 ml-1">Password</label>
             <input 
               name="password" 
               type="password" 
               required
               minLength={8}
-              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              className="w-full bg-white/10 border border-white/30 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
               placeholder="Minimal 8 karakter"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-300 ml-1">Konfirmasi Password</label>
+            <label className="text-xs font-medium text-white/80 ml-1">Konfirmasi Password</label>
             <input 
               name="confirmPassword" 
               type="password" 
               required
               minLength={8}
-              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              className="w-full bg-white/10 border border-white/30 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
               placeholder="Ulangi password"
             />
           </div>
@@ -171,7 +170,7 @@ export function RegisterClient() {
               required 
               className="w-4 h-4 mt-0.5 rounded border-gray-600 text-[#9D4EDD] bg-white/5 focus:ring-[#9D4EDD]" 
             />
-            <label htmlFor="consent" className="text-xs text-gray-300 leading-tight cursor-pointer">
+            <label htmlFor="consent" className="text-xs text-white/80 leading-tight cursor-pointer">
               Saya menyatakan bahwa seluruh data yang saya kirim adalah benar dan sesuai identitas asli saya.
             </label>
           </div>
@@ -187,7 +186,7 @@ export function RegisterClient() {
         </form>
 
         {/* Footer Link */}
-        <div className="mt-8 text-center text-xs text-gray-300">
+        <div className="mt-8 text-center text-xs text-white/70">
           Already Have an Account ?{" "}
           <Link href="/login" className="font-extrabold text-white hover:text-[#C77DFF] transition ml-1">
             Log In
