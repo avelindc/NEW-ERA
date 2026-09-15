@@ -27,9 +27,9 @@ export const BUCKET_PROFILES = process.env.R2_BUCKET_PROFILES || "profiles";
 export const BUCKET_RELEASES = process.env.R2_BUCKET_RELEASES || "releases";
 
 // Public URLs for buckets (using custom domains for security)
-export const R2_PUBLIC_URL_ASSETS = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_ASSETS || "https://assets.breakoutmusic.online";
-export const R2_PUBLIC_URL_PROFILES = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_PROFILES || "https://profiles.breakoutmusic.online";
-export const R2_PUBLIC_URL_RELEASES = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_RELEASES || "https://releases.breakoutmusic.online";
+export const R2_PUBLIC_URL_ASSETS = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_ASSETS || "https://assets.breakoutmusicrecord.com";
+export const R2_PUBLIC_URL_PROFILES = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_PROFILES || "https://profiles.breakoutmusicrecord.com";
+export const R2_PUBLIC_URL_RELEASES = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_RELEASES || "https://releases.breakoutmusicrecord.com";
 
 // Validate R2 configuration
 export function validateR2Config(): { isValid: boolean; error?: string } {

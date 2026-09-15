@@ -17,7 +17,23 @@ export async function GET(request: Request) {
     }
 
     // Fetch the file from Cloudflare R2
-    const res = await fetch(url);
+    let res = await fetch(url);
+    if (!res.ok) {
+      // Try alternate domain if 404
+      let altUrl = "";
+      if (url.includes("breakoutmusicrecord.com")) {
+        altUrl = url.replace("breakoutmusicrecord.com", "breakoutmusic.online");
+      } else if (url.includes("breakoutmusic.online")) {
+        altUrl = url.replace("breakoutmusic.online", "breakoutmusicrecord.com");
+      }
+      if (altUrl) {
+        const altRes = await fetch(altUrl);
+        if (altRes.ok) {
+          res = altRes;
+        }
+      }
+    }
+
     if (!res.ok) {
       return NextResponse.redirect(url, 302);
     }

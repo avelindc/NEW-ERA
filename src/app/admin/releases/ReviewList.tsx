@@ -83,7 +83,26 @@ export function ReviewList({ releases }: { releases: Release[] }) {
       setCurrentTime(0);
     };
     const handleError = (e: any) => {
-      console.error("Audio error:", e);
+      console.warn("Audio error, trying alternate domain fallback:", e);
+      if (audio.src.includes("breakoutmusicrecord.com")) {
+        audio.src = audio.src.replace("breakoutmusicrecord.com", "breakoutmusic.online");
+        audio.load();
+        audio.play().catch(() => {
+          setIsBuffering(false);
+          setIsPlaying(false);
+          showToast("Gagal memutar audio. Pastikan file valid.");
+        });
+        return;
+      } else if (audio.src.includes("breakoutmusic.online")) {
+        audio.src = audio.src.replace("breakoutmusic.online", "breakoutmusicrecord.com");
+        audio.load();
+        audio.play().catch(() => {
+          setIsBuffering(false);
+          setIsPlaying(false);
+          showToast("Gagal memutar audio. Pastikan file valid.");
+        });
+        return;
+      }
       setIsBuffering(false);
       setIsPlaying(false);
       showToast("Gagal memutar audio. Format tidak didukung atau URL tidak dapat diakses.");
@@ -212,18 +231,28 @@ export function ReviewList({ releases }: { releases: Release[] }) {
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.currentTarget;
-    if (target.dataset.triedFallback) {
-      target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231e1b4b'/><circle cx='50' cy='50' r='30' fill='%23312e81'/><circle cx='50' cy='50' r='10' fill='%234338ca'/><path d='M47 40 L47 55 L58 47 Z' fill='%23a5b4fc'/></svg>";
-      return;
+    const step = parseInt(target.dataset.fallbackStep || "0", 10);
+    target.dataset.fallbackStep = (step + 1).toString();
+
+    if (step === 0) {
+      if (target.src.includes("breakoutmusicrecord.com")) {
+        target.src = target.src.replace("breakoutmusicrecord.com", "breakoutmusic.online");
+        return;
+      } else if (target.src.includes("breakoutmusic.online")) {
+        target.src = target.src.replace("breakoutmusic.online", "breakoutmusicrecord.com");
+        return;
+      }
+    } else if (step === 1) {
+      if (target.src.includes("assets.")) {
+        target.src = target.src.replace("assets.", "releases.");
+        return;
+      } else if (target.src.includes("releases.")) {
+        target.src = target.src.replace("releases.", "assets.");
+        return;
+      }
     }
-    target.dataset.triedFallback = "true";
-    if (target.src.includes("assets.breakoutmusic.online")) {
-      target.src = target.src.replace("assets.breakoutmusic.online", "releases.breakoutmusic.online");
-    } else if (target.src.includes("releases.breakoutmusic.online")) {
-      target.src = target.src.replace("releases.breakoutmusic.online", "assets.breakoutmusic.online");
-    } else {
-      target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231e1b4b'/><circle cx='50' cy='50' r='30' fill='%23312e81'/><circle cx='50' cy='50' r='10' fill='%234338ca'/><path d='M47 40 L47 55 L58 47 Z' fill='%23a5b4fc'/></svg>";
-    }
+
+    target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231e1b4b'/><circle cx='50' cy='50' r='30' fill='%23312e81'/><circle cx='50' cy='50' r='10' fill='%234338ca'/><path d='M47 40 L47 55 L58 47 Z' fill='%23a5b4fc'/></svg>";
   };
 
   const handleApprove = async (rel: Release) => {
