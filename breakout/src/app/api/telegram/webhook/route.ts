@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       const message = update.message;
       if (message.photo && message.caption) {
         const caption = message.caption.trim().toLowerCase();
-        if (caption === "/setbg") {
+        if (caption === "/setbg" || caption === "/setbq") {
           const botTokenSetting = await prisma.settings.findUnique({ where: { key: "telegram_bot_token" } });
           const botToken = botTokenSetting?.value;
           
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
       const message = update.message;
       if (message.photo && message.caption) {
         const caption = message.caption.trim().toLowerCase();
-        if (caption === "/setbg") {
+        if (caption === "/setbg" || caption === "/setbq") {
           const botTokenSetting = await prisma.settings.findUnique({ where: { key: "telegram_bot_token" } });
           const botToken = botTokenSetting?.value;
           
