@@ -203,7 +203,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
       const res = await updateReleaseStatusAction(
         id,
         releaseToUpdate.user.id,
-        newStatus,
+        newStatus as "APPROVED" | "REJECTED",
         releaseToUpdate.user.name || "Artist",
         releaseToUpdate.user.email || "",
         releaseToUpdate.title
@@ -214,7 +214,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
           setSelected({ ...selected, status: newStatus });
         }
       } else {
-        alert("Gagal mengupdate status: " + res.error);
+        alert("Gagal mengupdate status: " + (res as any).error);
       }
     } catch (err: any) {
       alert("Terjadi kesalahan: " + err.message);
