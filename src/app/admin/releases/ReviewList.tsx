@@ -211,16 +211,14 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
       if (res.success) {
         setReleases(releases.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
         if (selected && selected.id === id) {
-          setSelected({ ...selected, status: newStatus });
+          setSelected(null);
         }
       } else {
         alert("Gagal mengupdate status: " + (res as any).error);
       }
     } catch (err: any) {
       alert("Terjadi kesalahan: " + err.message);
-    } finally {
-      /* set(updatingStatus !== null)(false); */
-    }
+    } finally { setUpdatingStatus(null); }
   };
 
   const filtered = releases.filter((r) => {
