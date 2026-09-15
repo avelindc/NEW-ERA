@@ -1,26 +1,42 @@
 import Link from "next/link";
-import { AuroraBackground } from "@/components/AuroraBackground";
-import * as LucideIcons from "lucide-react";
+import { 
+  Sparkles, 
+  Play, 
+  CheckCircle2, 
+  ArrowRight, 
+  Headphones, 
+  Music, 
+  Music2, 
+  Radio, 
+  Quote, 
+  Disc3, 
+  ShieldCheck, 
+  Layers, 
+  Zap, 
+  Globe,
+  Video
+} from "lucide-react";
 import { getLandingPageCMS } from "@/app/actions/cms";
 import { getLandingStats } from "@/app/actions/landingStats";
 import { Metadata } from "next";
-import { AnimatedSection, AnimatedCounter, Navbar, FeaturedReleaseCard } from "./LandingClient";
+import { 
+  AnimatedSection, 
+  AnimatedCounter, 
+  Navbar, 
+  FeaturedReleaseCard, 
+  NeonArrowButton, 
+  RoundArrowBadge 
+} from "./LandingClient";
 import FAQSection from "@/components/FAQSection";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Helper for dynamic icons
-const DynamicIcon = ({ name, className }: { name: string; className?: string }) => {
-  const IconComponent = (LucideIcons as any)[name] || LucideIcons.Star;
-  return <IconComponent className={className} />;
-};
-
 export async function generateMetadata(): Promise<Metadata> {
   const cms = await getLandingPageCMS();
   return {
-    title: cms.seo.title,
-    description: cms.seo.description,
+    title: cms.seo.title || "BREAKOUT - Modern Music Distribution",
+    description: cms.seo.description || "Distribute your music worldwide to 150+ platforms.",
     keywords: cms.seo.keywords,
   };
 }
@@ -29,381 +45,577 @@ export default async function LandingPage() {
   const cms = await getLandingPageCMS();
   const dbStats = await getLandingStats();
 
-  const totalArtists = cms.stats.autoFromDb ? dbStats.artistCount : (cms.stats.totalArtists || 0);
-  const totalReleases = cms.stats.autoFromDb ? dbStats.releaseCount : (cms.stats.totalReleases || 0);
-  const totalStreams = cms.stats.autoFromDb ? dbStats.streamCount : (cms.stats.totalStreams || 0);
+  const totalArtists = cms.stats.autoFromDb ? dbStats.artistCount : (cms.stats.totalArtists || 120);
+  const totalReleases = cms.stats.autoFromDb ? dbStats.releaseCount : (cms.stats.totalReleases || 480);
+  const totalStreams = cms.stats.autoFromDb ? dbStats.streamCount : (cms.stats.totalStreams || 1500000);
 
-  const bgStyle = cms.design?.backgroundType === "color" && cms.design.backgroundColor 
-    ? { backgroundColor: cms.design.backgroundColor } 
-    : {};
-  const bgClass = (!cms.design?.backgroundType || cms.design?.backgroundType === "aurora") ? "bg-[#0B0F1A]" : "bg-black/90";
-
-  function getYouTubeId(url: string) {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url?.match(regExp);
-    return match && match[2].length === 11 ? match[2] : "";
-  }
-
-  const HeroWrapper = (!cms.design?.backgroundType || cms.design?.backgroundType === "aurora") ? AuroraBackground : "div";
+  // High quality curated stock visuals for editorial music-tech feel
+  const HERO_BG = cms.hero.backgroundUrl || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=2000&auto=format&fit=crop";
+  const ABOUT_IMG = cms.aboutLabel.imageUrl || cms.about.imageUrl || "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?q=80&w=1200&auto=format&fit=crop";
+  const CARD_BG_1 = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000&auto=format&fit=crop";
+  const CARD_BG_3 = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop";
+  const CITY_IMG = "https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=1200&auto=format&fit=crop";
+  const STAGE_IMG = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop";
 
   return (
-    <main className={`min-h-screen text-white selection:bg-[#7000FF] selection:text-white pb-20 relative overflow-hidden ${bgClass}`} style={bgStyle}>
+    <main className="min-h-screen bg-[#07040E] text-white selection:bg-[#D4FF00] selection:text-black py-4 sm:py-8 px-2 sm:px-4">
       
-      {cms.design?.backgroundType === "image" && cms.design.backgroundImage && (
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <img src={cms.design.backgroundImage} className="w-full h-full object-cover opacity-40" alt="Background" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
-        </div>
-      )}
+      {/* Editorial Frame Container */}
+      <div className="editorial-frame relative">
+        
+        {/* Navigation */}
+        <Navbar cms={cms} />
 
-      {cms.design?.backgroundType === "video" && cms.design.backgroundVideo && (
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-          {cms.design.backgroundVideo.includes("youtube") || cms.design.backgroundVideo.includes("youtu.be") ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${getYouTubeId(cms.design.backgroundVideo)}?autoplay=1&mute=1&loop=1&playlist=${getYouTubeId(cms.design.backgroundVideo)}&controls=0&showinfo=0&rel=0`}
-              className="absolute w-[300%] h-[300%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover aspect-video opacity-30"
-              allow="autoplay; encrypted-media"
-            />
-          ) : (
-            <video src={cms.design.backgroundVideo} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-30" />
-          )}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/90" />
-        </div>
-      )}
-
-      <Navbar cms={cms} />
-
-      {/* Hero Section */}
-      <HeroWrapper className="relative z-10">
-        <div className="max-w-7xl mx-auto px-6 pt-40 pb-20 flex flex-col md:flex-row items-center relative z-10 min-h-[90vh]">
+        {/* ========================================================================= */}
+        {/* HERO SECTION (Grand Display + Sunset Atmosphere) */}
+        {/* ========================================================================= */}
+        <section className="relative min-h-[85vh] lg:min-h-[92vh] flex flex-col justify-between p-6 sm:p-12 lg:p-16 rounded-[36px] overflow-hidden m-2 sm:m-4 bg-gradient-to-b from-purple-950/40 via-purple-900/20 to-[#0E091B]">
           
-          <div className="w-full md:w-1/2 md:pr-10 z-20">
+          {/* Hero Background Image with Rich Color Grade */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <img 
+              src={HERO_BG} 
+              alt="Breakout Music" 
+              className="w-full h-full object-cover object-center opacity-45 mix-blend-screen scale-105" 
+            />
+            {/* Sunset Violet/Pink/Cyan Gradient Overlays */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0E091B] via-[#0E091B]/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#120526]/90 via-[#120526]/40 to-transparent" />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#FF007A]/25 via-[#7000FF]/20 to-transparent rounded-full blur-[140px]" />
+          </div>
+
+          {/* Top Label */}
+          <div className="relative z-10">
             <AnimatedSection>
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
-                {cms.hero.title1} <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] via-[#0047FF] to-[#7000FF]">
-                  {cms.hero.title2}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[#D4FF00] text-xs font-black tracking-widest uppercase mb-4">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{cms.hero.badge || "WELCOME TO BREAKOUT MUSIC"}</span>
+              </div>
+            </AnimatedSection>
+          </div>
+
+          {/* Center Main Headlines */}
+          <div className="relative z-10 max-w-4xl my-auto pt-8 pb-12">
+            <AnimatedSection delay={0.1}>
+              <h1 className="font-display text-6xl sm:text-8xl lg:text-9xl tracking-tight text-white uppercase leading-[0.88] drop-shadow-2xl">
+                {cms.hero.title1 || "YOUR MUSIC"}
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#FF85C0] to-[#D4FF00]">
+                  {cms.hero.title2 || "FOR EVERYONE"}
                 </span>
               </h1>
             </AnimatedSection>
-            
+
             <AnimatedSection delay={0.2}>
-              <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-xl">
-                {cms.hero.subtitle}
+              <p className="mt-6 text-base sm:text-xl text-gray-300 max-w-2xl font-medium leading-relaxed drop-shadow">
+                {cms.hero.subtitle || "A next-generation music distribution network. Release your tracks to Spotify, Apple Music, TikTok, YouTube Music and 150+ stores while keeping 100% control of your master."}
               </p>
             </AnimatedSection>
-            
-            <AnimatedSection delay={0.4}>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <Link href={cms.hero.ctaLink} className="w-full sm:w-auto text-center px-8 py-4 rounded-full bg-gradient-to-r from-[#7000FF] to-[#0047FF] text-white font-bold text-lg hover:opacity-90 transition shadow-[0_0_30px_rgba(112,0,255,0.4)]">
-                  {cms.hero.ctaText}
+
+            {/* CTAs */}
+            <AnimatedSection delay={0.3}>
+              <div className="mt-8 flex flex-wrap items-center gap-4 sm:gap-6">
+                <NeonArrowButton 
+                  href={cms.hero.ctaLink || "/register"} 
+                  text={cms.hero.ctaText || "START YOUR RELEASE"} 
+                  size="large" 
+                />
+
+                <Link 
+                  href="#about"
+                  className="inline-flex items-center gap-3 px-6 py-4 rounded-full bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/20 text-white font-bold text-sm tracking-wider uppercase transition-all duration-200 group"
+                >
+                  <span className="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center group-hover:scale-110 transition">
+                    <Play className="w-4 h-4 fill-black ml-0.5" />
+                  </span>
+                  <span>EXPLORE BREAKOUT</span>
                 </Link>
-                {cms.hero.secondaryCtaText && (
-                  <Link href={cms.hero.secondaryCtaLink} className="w-full sm:w-auto text-center px-8 py-4 rounded-full glass border border-white/10 text-white font-bold text-lg hover:bg-white/5 transition flex items-center justify-center gap-2">
-                    <LucideIcons.Upload className="w-5 h-5" /> {cms.hero.secondaryCtaText}
-                  </Link>
-                )}
               </div>
             </AnimatedSection>
+          </div>
+
+          {/* Hero Bottom Stats Bar */}
+          <div className="relative z-10 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6 items-center">
+            <div>
+              <div className="font-display text-3xl sm:text-4xl text-white">150+</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-widest text-[#D4FF00]">DSP Stores Worldwide</div>
+            </div>
+            <div>
+              <div className="font-display text-3xl sm:text-4xl text-white"><AnimatedCounter value={totalArtists} />+</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">Exclusive Creators</div>
+            </div>
+            <div>
+              <div className="font-display text-3xl sm:text-4xl text-white"><AnimatedCounter value={totalReleases} />+</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400">Active Releases</div>
+            </div>
+            <div>
+              <div className="font-display text-3xl sm:text-4xl text-white">100%</div>
+              <div className="text-[11px] font-extrabold uppercase tracking-widest text-[#D4FF00]">Master Ownership</div>
+            </div>
+          </div>
+
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 2: THREE ASYMMETRIC VISUAL CARDS (Row 2 in Reference) */}
+        {/* ========================================================================= */}
+        <section id="distribution" className="p-4 sm:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
-            <AnimatedSection delay={0.6}>
-              <div className="mt-12 flex gap-8">
-                <div>
-                  <div className="text-3xl font-black text-white"><AnimatedCounter value={totalArtists} />+</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Exclusive Singers</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-black text-white"><AnimatedCounter value={totalReleases} />+</div>
-                  <div className="text-xs text-gray-500 uppercase tracking-widest mt-1">Total Releases</div>
-                </div>
-              </div>
-            </AnimatedSection>
-          </div>
-
-          <div className="w-full md:w-1/2 mt-16 md:mt-0 relative z-20">
-            <AnimatedSection delay={0.3} className="relative">
-              {cms.hero.backgroundUrl ? (
-                 <div className="relative w-full aspect-[4/5] md:aspect-square rounded-[3rem] overflow-hidden glass border border-white/10 shadow-[0_0_80px_rgba(112,0,255,0.2)]">
-                   <img src={cms.hero.backgroundUrl} alt="Hero Image" className="w-full h-full object-cover" />
-                 </div>
-              ) : (
-                <div className="relative w-full aspect-[4/5] md:aspect-square rounded-[3rem] overflow-hidden glass border border-white/10 shadow-[0_0_80px_rgba(112,0,255,0.2)] flex items-center justify-center">
-                  <LucideIcons.Music className="w-32 h-32 text-white/5" />
-                </div>
-              )}
-            </AnimatedSection>
-          </div>
-          
-        </div>
-      </HeroWrapper>
-
-      {/* Featured Releases Section */}
-      {cms.featuredReleases.length > 0 && (
-        <section id="releases" className="py-24 px-6 relative">
-          <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-[#7000FF] rounded-full blur-[200px] opacity-10 pointer-events-none" />
-          <div className="max-w-7xl mx-auto relative z-10">
-            <AnimatedSection>
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">This Week's Fire Tracks</h2>
-                <p className="text-gray-400 text-lg">Discover the tracks everyone's talking about.</p>
-              </div>
-            </AnimatedSection>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cms.featuredReleases.sort((a,b)=>a.order-b.order).map((release, i) => (
-                <AnimatedSection key={release.id} delay={i * 0.1}>
-                  <FeaturedReleaseCard release={release} />
-                </AnimatedSection>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Featured Artists Section */}
-      {cms.featuredArtists.length > 0 && (
-        <section id="artists" className="py-24 px-6 bg-[#06080F] relative">
-          <div className="max-w-7xl mx-auto relative z-10">
-            <AnimatedSection>
-              <div className="flex justify-between items-end mb-12">
-                <div>
-                  <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Our Talents</h2>
-                  <p className="text-gray-400 text-lg">Meet the artists shaping the future of music.</p>
-                </div>
-              </div>
-            </AnimatedSection>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {cms.featuredArtists.sort((a,b)=>a.order-b.order).map((artist, i) => (
-                <AnimatedSection key={artist.id} delay={i * 0.1}>
-                  <div className="glass-card rounded-3xl overflow-hidden group">
-                    <div className="aspect-[3/4] relative overflow-hidden">
-                      <img src={artist.photo} alt={artist.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F1A] via-[#0B0F1A]/50 to-transparent" />
-                      <div className="absolute bottom-0 left-0 w-full p-6">
-                        <span className="text-[#00F0FF] text-xs font-bold uppercase tracking-wider mb-2 block">{artist.genre}</span>
-                        <h3 className="text-2xl font-bold text-white mb-2">{artist.name}</h3>
-                        <p className="text-gray-400 text-sm line-clamp-2 mb-4">{artist.bio}</p>
-                        <div className="flex gap-4">
-                          {artist.instagram && <a href={artist.instagram} target="_blank" rel="noreferrer" className="text-white hover:text-[#00F0FF] transition"><LucideIcons.Camera className="w-5 h-5" /></a>}
-                          {artist.spotify && <a href={artist.spotify} target="_blank" rel="noreferrer" className="text-white hover:text-[#1DB954] transition"><LucideIcons.Headphones className="w-5 h-5" /></a>}
-                          {artist.youtube && <a href={artist.youtube} target="_blank" rel="noreferrer" className="text-white hover:text-[#FF0000] transition"><LucideIcons.PlayCircle className="w-5 h-5" /></a>}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </AnimatedSection>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Music Videos Section */}
-      {cms.musicVideos.length > 0 && (
-        <section id="videos" className="py-24 px-6 relative">
-          <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-[#0047FF] rounded-full blur-[200px] opacity-10 pointer-events-none" />
-          <div className="max-w-7xl mx-auto relative z-10">
-            <AnimatedSection>
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">Latest Music Videos</h2>
-                <p className="text-gray-400 text-lg">Watch the visual experience of our releases.</p>
-              </div>
-            </AnimatedSection>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {cms.musicVideos.sort((a,b)=>a.order-b.order).map((video, i) => (
-                <AnimatedSection key={video.id} delay={i * 0.1}>
-                  <FeaturedReleaseCard 
-                    release={{
-                      id: video.id,
-                      title: video.title,
-                      artist: video.artist,
-                      coverUrl: video.thumbnailUrl,
-                      playerType: "youtube",
-                      playerUrl: video.youtubeUrl
-                    }} 
-                  />
-                </AnimatedSection>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* About Section */}
-      {cms.aboutLabel.isActive && (
-        <section id="about" className="py-24 px-6 relative">
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#00F0FF] rounded-full blur-[250px] opacity-10 pointer-events-none" />
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
-            <AnimatedSection className="w-full lg:w-1/2">
-              <div className="relative aspect-square rounded-[3rem] overflow-hidden glass border border-white/10 shadow-[0_0_50px_rgba(0,240,255,0.1)]">
-                {cms.aboutLabel.imageUrl ? (
-                  <img src={cms.aboutLabel.imageUrl} alt="About Us" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-[#111]">
-                    <LucideIcons.Info className="w-20 h-20 text-white/10" />
-                  </div>
-                )}
-              </div>
-            </AnimatedSection>
-            
-            <AnimatedSection className="w-full lg:w-1/2 space-y-8" delay={0.2}>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tight">{cms.aboutLabel.title}</h2>
-              <div className="h-1 w-24 bg-gradient-to-r from-[#00F0FF] to-[#7000FF] rounded-full"></div>
+            {/* Card 1: Distribute Everywhere (Image Card + Overlay + Lime Arrow) */}
+            <div className="lg:col-span-4 relative rounded-[32px] overflow-hidden min-h-[340px] p-8 flex flex-col justify-between group border border-white/10 shadow-2xl">
+              <img 
+                src={CARD_BG_1} 
+                alt="Distribute" 
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#14062B]/95 via-[#14062B]/60 to-[#7000FF]/30" />
               
-              <p className="text-gray-300 text-lg leading-relaxed">
-                {cms.aboutLabel.description}
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-                <div>
-                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                    <LucideIcons.Eye className="text-[#00F0FF]" /> Vision
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">{cms.aboutLabel.vision}</p>
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                    <LucideIcons.Target className="text-[#7000FF]" /> Mission
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">{cms.aboutLabel.mission}</p>
-                </div>
+              <div className="relative z-10">
+                <h3 className="font-display text-3xl sm:text-4xl uppercase tracking-wide text-white leading-tight">
+                  DISTRIBUTE<br />EVERYWHERE
+                </h3>
+                <p className="text-gray-300 text-xs sm:text-sm mt-2 max-w-xs">
+                  Instant delivery to Spotify, Apple Music, TikTok, YouTube Music, and 150+ global stores.
+                </p>
               </div>
-            </AnimatedSection>
+
+              <div className="relative z-10 self-end">
+                <RoundArrowBadge href="/register" />
+              </div>
+            </div>
+
+            {/* Card 2: Keep Your Royalties (Clean Crisp White Card + Lime Button) */}
+            <div className="lg:col-span-4 rounded-[32px] bg-white text-black p-8 sm:p-10 flex flex-col justify-between shadow-2xl">
+              <div>
+                <h3 className="font-display text-3xl sm:text-4xl uppercase tracking-tight text-gray-950 leading-tight">
+                  KEEP YOUR<br />ROYALTIES
+                </h3>
+                <p className="text-gray-700 text-sm mt-3 leading-relaxed font-medium">
+                  Transparent royalty tracking, daily stream analytics, automated split payments, and direct bank withdrawals.
+                </p>
+              </div>
+
+              <div className="mt-8">
+                <NeonArrowButton href="#pricing" text="LEARN MORE" size="normal" />
+              </div>
+            </div>
+
+            {/* Card 3: Stay In Control (Purple/Violet Gradient Card + Lime Arrow) */}
+            <div className="lg:col-span-4 relative rounded-[32px] overflow-hidden min-h-[340px] p-8 flex flex-col justify-between group border border-white/10 sunset-card-gradient shadow-2xl">
+              <img 
+                src={CARD_BG_3} 
+                alt="Control" 
+                className="absolute inset-0 w-full h-full object-cover opacity-25 mix-blend-overlay group-hover:scale-105 transition-transform duration-700" 
+              />
+              
+              <div className="relative z-10">
+                <h3 className="font-display text-3xl sm:text-4xl uppercase tracking-wide text-white leading-tight">
+                  ENDLESS<br />POSSIBILITIES
+                </h3>
+                <p className="text-purple-200 text-xs sm:text-sm mt-2 max-w-xs">
+                  Manage multiple artists, smart contracts, custom ISRC/UPC, and global marketing from one single dashboard.
+                </p>
+              </div>
+
+              <div className="relative z-10 self-end">
+                <RoundArrowBadge href="/register" />
+              </div>
+            </div>
+
           </div>
         </section>
-      )}
 
-      {/* FAQ Section */}
-      <FAQSection section={cms.faqSection} groups={cms.faqGroups} />
-
-      {/* Testimonials Section */}
-      {cms.testimonials && cms.testimonials.length > 0 && (
-        <section id="testimonials" className="py-24 px-6 relative">
-          <div className="max-w-7xl mx-auto relative z-10">
-            <AnimatedSection>
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">What They Say</h2>
-                <p className="text-gray-400 text-lg">Testimonials from our talented artists and partners.</p>
+        {/* ========================================================================= */}
+        {/* SECTION 3: ABOUT BREAKOUT (Asymmetric Split - Row 3 in Reference) */}
+        {/* ========================================================================= */}
+        <section id="about" className="p-4 sm:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            {/* Left Column: Editorial About Text */}
+            <div className="lg:col-span-4 rounded-[32px] bg-[#140C26] border border-white/10 p-8 sm:p-10 flex flex-col justify-between shadow-2xl">
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-2">
+                  THE NEXT LEVEL
+                </span>
+                <h2 className="font-display text-4xl sm:text-5xl uppercase tracking-tight text-white mb-4 leading-none">
+                  {cms.aboutLabel.title || "ABOUT BREAKOUT"}
+                </h2>
+                <p className="text-gray-300 text-sm leading-relaxed font-normal">
+                  {cms.aboutLabel.description || "BREAKOUT is a premier music distribution ecosystem designed specifically for modern independent creators, record labels, and producers. We bridge the gap between creative freedom and global streaming reach."}
+                </p>
+                {cms.aboutLabel.vision && (
+                  <p className="text-gray-400 text-xs mt-3 leading-relaxed">
+                    {cms.aboutLabel.vision}
+                  </p>
+                )}
               </div>
-            </AnimatedSection>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+              <div className="mt-8">
+                <NeonArrowButton href="/register" text="DISCOVER MORE" size="normal" />
+              </div>
+            </div>
+
+            {/* Right Column: Panoramic Cinematic Banner Card */}
+            <div className="lg:col-span-8 relative rounded-[32px] overflow-hidden min-h-[380px] p-8 flex items-end justify-between group border border-white/10 shadow-2xl">
+              <img 
+                src={ABOUT_IMG} 
+                alt="About Breakout" 
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0F071F]/90 via-[#0F071F]/30 to-transparent" />
+
+              {/* Vertical / Accent Badge */}
+              <div className="relative z-10">
+                <span className="text-xs font-black uppercase tracking-widest text-[#D4FF00] px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 inline-block mb-2">
+                  GLOBAL STAGE
+                </span>
+                <h3 className="font-display text-3xl sm:text-4xl text-white uppercase leading-none drop-shadow-lg">
+                  EMPOWERING CREATORS WORLDWIDE
+                </h3>
+              </div>
+
+              <div className="relative z-10">
+                <RoundArrowBadge href="/register" />
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 4: WHY YOU'LL LOVE IT (Row 4 in Reference) */}
+        {/* ========================================================================= */}
+        <section id="features" className="p-4 sm:p-8">
+          <div className="mb-6 px-2">
+            <h2 className="font-display text-4xl sm:text-5xl uppercase tracking-tight text-white">
+              WHY YOU'LL LOVE IT
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            {/* Left 3 Mini Cards Grid */}
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              
+              {/* Feature 1 */}
+              <div className="rounded-[28px] bg-white text-black p-6 flex flex-col justify-between shadow-xl">
+                <div>
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden mb-4 shadow-md bg-[#7000FF] p-0.5">
+                    <img src={CARD_BG_1} className="w-full h-full object-cover rounded-[14px]" alt="Vibrant" />
+                  </div>
+                  <h4 className="font-display text-xl uppercase tracking-tight text-gray-950 mb-2 leading-snug">
+                    VIBRANT ECOSYSTEM
+                  </h4>
+                  <p className="text-gray-700 text-xs leading-relaxed font-medium">
+                    A living, breathing music network full of reach, playlists, and global streaming opportunities.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 2 */}
+              <div className="rounded-[28px] bg-white text-black p-6 flex flex-col justify-between shadow-xl">
+                <div>
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden mb-4 shadow-md bg-[#FF007A] p-0.5">
+                    <img src={CITY_IMG} className="w-full h-full object-cover rounded-[14px]" alt="Direct" />
+                  </div>
+                  <h4 className="font-display text-xl uppercase tracking-tight text-gray-950 mb-2 leading-snug">
+                    DIRECT PAYOUTS
+                  </h4>
+                  <p className="text-gray-700 text-xs leading-relaxed font-medium">
+                    High-speed royalty settlements, transparent reports, and zero delay bank transfers.
+                  </p>
+                </div>
+              </div>
+
+              {/* Feature 3 */}
+              <div className="rounded-[28px] bg-white text-black p-6 flex flex-col justify-between shadow-xl">
+                <div>
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden mb-4 shadow-md bg-[#D4FF00] p-0.5">
+                    <img src={STAGE_IMG} className="w-full h-full object-cover rounded-[14px]" alt="Catalog" />
+                  </div>
+                  <h4 className="font-display text-xl uppercase tracking-tight text-gray-950 mb-2 leading-snug">
+                    NEW ERA CATALOG
+                  </h4>
+                  <p className="text-gray-700 text-xs leading-relaxed font-medium">
+                    Next-gen music metadata management, automated ISRC/UPC generation and split control.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right 1 Large Scenic Card */}
+            <div className="lg:col-span-5 relative rounded-[32px] overflow-hidden min-h-[280px] p-8 flex items-end justify-between group border border-white/10 shadow-2xl">
+              <img 
+                src={CITY_IMG} 
+                alt="New Legacy" 
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0F071F]/95 via-[#0F071F]/40 to-transparent" />
+
+              <div className="relative z-10">
+                <h3 className="font-display text-3xl sm:text-4xl text-white uppercase leading-tight">
+                  A NEW LEGACY<br />BEGINS
+                </h3>
+              </div>
+
+              <div className="relative z-10">
+                <RoundArrowBadge href="/register" />
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 5: WHAT ARTISTS SAY (Testimonials) */}
+        {/* ========================================================================= */}
+        {cms.testimonials && cms.testimonials.length > 0 && (
+          <section className="p-4 sm:p-8">
+            <div className="mb-6 px-2 flex justify-between items-end">
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-1">REAL FEEDBACK</span>
+                <h2 className="font-display text-4xl sm:text-5xl uppercase tracking-tight text-white">WHAT ARTISTS SAY</h2>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {cms.testimonials.map((testi, i) => (
-                <AnimatedSection key={testi.id} delay={i * 0.1}>
-                  <div className="glass-card rounded-3xl p-8 relative h-full">
-                    <LucideIcons.Quote className="absolute top-6 right-6 w-10 h-10 text-white/5" />
-                    <p className="text-gray-300 italic mb-6">"{testi.content}"</p>
-                    <div className="flex items-center gap-4 mt-auto">
-                      {testi.avatarUrl ? (
-                        <img src={testi.avatarUrl} alt={testi.name} className="w-12 h-12 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
-                          <LucideIcons.User className="w-6 h-6 text-white/50" />
-                        </div>
-                      )}
-                      <div>
-                        <h4 className="font-bold text-white">{testi.name}</h4>
-                        <p className="text-xs text-[#00F0FF]">{testi.role}</p>
+                <div key={testi.id || i} className="rounded-[28px] bg-[#140C26] border border-white/10 p-6 flex flex-col justify-between shadow-xl group hover:border-[#D4FF00]/40 transition-all">
+                  <div>
+                    <Quote className="w-8 h-8 text-[#D4FF00]/40 mb-4" />
+                    <p className="text-gray-300 text-sm leading-relaxed italic">"{testi.content}"</p>
+                  </div>
+                  <div className="flex items-center gap-3.5 mt-6 pt-4 border-t border-white/10">
+                    {testi.avatarUrl ? (
+                      <img src={testi.avatarUrl} alt={testi.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[#D4FF00]/30" />
+                    ) : (
+                      <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center font-bold text-white text-sm">
+                        {testi.name?.[0] || "A"}
                       </div>
+                    )}
+                    <div>
+                      <h4 className="font-bold text-white text-sm leading-tight">{testi.name}</h4>
+                      <p className="text-[11px] font-bold text-[#D4FF00] tracking-wider uppercase mt-0.5">{testi.role || "Artist"}</p>
                     </div>
                   </div>
-                </AnimatedSection>
+                </div>
               ))}
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* Partners Section */}
-      {cms.partners && cms.partners.length > 0 && (
-        <section id="partners" className="py-24 px-6 relative">
-          <div className="max-w-7xl mx-auto relative z-10">
-            <AnimatedSection>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 text-white">Our Partners</h2>
+        {/* ========================================================================= */}
+        {/* SECTION 6: FEATURED RELEASES (Catalog Grid) */}
+        {/* ========================================================================= */}
+        {cms.featuredReleases && cms.featuredReleases.length > 0 && (
+          <section id="releases" className="p-4 sm:p-8">
+            <div className="mb-6 px-2 flex justify-between items-end">
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-1">CATALOG HIGHLIGHTS</span>
+                <h2 className="font-display text-4xl sm:text-5xl uppercase tracking-tight text-white">LATEST RELEASES</h2>
               </div>
-            </AnimatedSection>
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70">
-              {cms.partners.map((partner, i) => (
-                <AnimatedSection key={partner.id} delay={i * 0.1}>
-                  <div className="w-32 md:w-48 h-16 flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-500 opacity-70 hover:opacity-100">
-                    <img src={partner.logoUrl} alt={partner.name} className="max-w-full max-h-full object-contain" />
-                  </div>
-                </AnimatedSection>
+              <Link href="/register" className="hidden sm:inline-flex text-xs font-black uppercase tracking-widest text-[#D4FF00] hover:underline items-center gap-1">
+                VIEW ALL TRACKS <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {cms.featuredReleases.slice(0, 4).map((rel: any) => (
+                <FeaturedReleaseCard key={rel.id} release={rel} />
               ))}
             </div>
+          </section>
+        )}
+
+        {/* ========================================================================= */}
+        {/* SECTION 7: PRICING SECTION (Simple. Transparent.) */}
+        {/* ========================================================================= */}
+        <section id="pricing" className="p-4 sm:p-8">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-2">PLANS & PRICING</span>
+            <h2 className="font-display text-4xl sm:text-6xl uppercase tracking-tight text-white leading-none">
+              SIMPLE. TRANSPARENT.<br />BUILT FOR ARTISTS.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
+            
+            {/* Basic Plan */}
+            <div className="rounded-[32px] bg-[#140C26] border border-white/10 p-8 flex flex-col justify-between shadow-2xl">
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-gray-400 block mb-1">STARTER</span>
+                <h3 className="font-display text-3xl text-white">BASIC ARTIST</h3>
+                <div className="my-6">
+                  <span className="font-display text-5xl text-white">Rp 0</span>
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1">/ LIFETIME</span>
+                </div>
+                <ul className="space-y-3 text-sm text-gray-300">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Distribusi ke 150+ Toko Musik</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Royalti Transparan 80%</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Dashboard Statistik</li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <Link href="/register" className="w-full py-3.5 rounded-full border border-white/20 hover:border-white text-white font-black text-xs uppercase tracking-wider text-center block transition">
+                  GET STARTED FREE
+                </Link>
+              </div>
+            </div>
+
+            {/* Pro Plan (Highlighted Neon Tier) */}
+            <div className="rounded-[32px] bg-white text-black p-8 flex flex-col justify-between shadow-2xl relative ring-4 ring-[#D4FF00]">
+              <div className="absolute -top-3.5 right-8 px-4 py-1 rounded-full bg-[#D4FF00] text-black font-black text-[10px] tracking-widest uppercase shadow-md">
+                RECOMMENDED
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-[#7000FF] block mb-1">EXCLUSIVE</span>
+                <h3 className="font-display text-3xl text-gray-950">PRO ARTIST</h3>
+                <div className="my-6">
+                  <span className="font-display text-5xl text-gray-950">Rp 99K</span>
+                  <span className="text-gray-600 text-xs font-bold uppercase tracking-wider ml-1">/ TAHUN</span>
+                </div>
+                <ul className="space-y-3 text-sm text-gray-800 font-medium">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> 100% Royalti Penuh Milik Anda</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> Unlimited Rilis Lagu & Cover</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> Prioritas Review 24-48 Jam</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#7000FF]" /> Gratis Kode ISRC & UPC Resmi</li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <NeonArrowButton href="/register" text="UPGRADE TO PRO" size="normal" />
+              </div>
+            </div>
+
+            {/* Label Plan */}
+            <div className="rounded-[32px] bg-[#140C26] border border-white/10 p-8 flex flex-col justify-between shadow-2xl">
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-[#D4FF00] block mb-1">RECORD LABEL</span>
+                <h3 className="font-display text-3xl text-white">LABEL & COLLECTIVE</h3>
+                <div className="my-6">
+                  <span className="font-display text-5xl text-white">Rp 299K</span>
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-wider ml-1">/ TAHUN</span>
+                </div>
+                <ul className="space-y-3 text-sm text-gray-300">
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Manajemen Multi-Artis Tanpa Batas</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Otomasi Split Pembayaran Artis</li>
+                  <li className="flex items-center gap-2.5"><CheckCircle2 className="w-4 h-4 text-[#D4FF00]" /> Dedicated Account Manager</li>
+                </ul>
+              </div>
+              <div className="mt-8">
+                <Link href="/register" className="w-full py-3.5 rounded-full border border-white/20 hover:border-white text-white font-black text-xs uppercase tracking-wider text-center block transition">
+                  REGISTER LABEL
+                </Link>
+              </div>
+            </div>
+
           </div>
         </section>
-      )}
 
-      {/* Footer */}
-      <footer className="mt-24 border-t border-white/10 pt-16 pb-8 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+        {/* ========================================================================= */}
+        {/* SECTION 8: FAQ ACCORDION */}
+        {/* ========================================================================= */}
+        <section className="p-4 sm:p-8">
+          <FAQSection section={cms.faqSection} groups={cms.faqGroups} />
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 9: FINAL CTA BANNER (Row 5 in Reference) */}
+        {/* ========================================================================= */}
+        <section className="p-4 sm:p-8">
+          <div className="relative rounded-[36px] overflow-hidden p-8 sm:p-14 sunset-card-gradient border border-white/15 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
+            
+            {/* Big Watermark Typography */}
+            <div className="relative z-10">
+              <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-2">READY TO ELEVATE?</span>
+              <h2 className="font-display text-5xl sm:text-7xl uppercase tracking-tight text-white leading-none">
+                PUT YOUR MUSIC<br />WHERE THE WORLD LISTENS.
+              </h2>
+              <p className="text-purple-200 text-sm mt-3 max-w-lg">
+                Join thousands of independent artists building their sustainable music career with BREAKOUT.
+              </p>
+            </div>
+
+            <div className="relative z-10 flex-shrink-0">
+              <NeonArrowButton 
+                href="/register" 
+                text="START YOUR RELEASE" 
+                size="large" 
+              />
+            </div>
+
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* SECTION 10: OUR PARTNERS & PLATFORM BADGES (Footer Platform Logos) */}
+        {/* ========================================================================= */}
+        <section id="partners" className="py-8 px-6 border-t border-white/10 bg-[#0B0616]">
+          <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-75">
+            <span className="font-display text-2xl text-white tracking-wider flex items-center gap-2">
+              <Headphones className="w-5 h-5 text-[#1DB954]" /> SPOTIFY
+            </span>
+            <span className="font-display text-2xl text-white tracking-wider flex items-center gap-2">
+              <Music className="w-5 h-5 text-[#FA243C]" /> APPLE MUSIC
+            </span>
+            <span className="font-display text-2xl text-white tracking-wider flex items-center gap-2">
+              <Video className="w-5 h-5 text-[#FF0000]" /> YOUTUBE MUSIC
+            </span>
+            <span className="font-display text-2xl text-white tracking-wider flex items-center gap-2">
+              <Music2 className="w-5 h-5 text-[#00F0FF]" /> TIKTOK
+            </span>
+            <span className="font-display text-2xl text-white tracking-wider flex items-center gap-2">
+              <Radio className="w-5 h-5 text-[#FF7700]" /> DEEZER
+            </span>
+          </div>
+        </section>
+
+        {/* ========================================================================= */}
+        {/* FOOTER */}
+        {/* ========================================================================= */}
+        <footer id="contact" className="p-8 sm:p-12 bg-[#080410] border-t border-white/5">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
             <div className="md:col-span-2">
-              <img src="/logo.png" alt="Breakout Logo" className="h-10 w-auto mb-6 opacity-80" />
-              <p className="text-gray-400 max-w-sm mb-8">{cms.footer.aboutText}</p>
-              
-              <div className="flex gap-4">
-                {cms.socialMedia.instagram && (
-                  <a href={cms.socialMedia.instagram} target="_blank" className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition">
-                    <LucideIcons.Camera className="w-5 h-5 text-gray-300" />
-                  </a>
-                )}
-                {cms.socialMedia.tiktok && (
-                  <a href={cms.socialMedia.tiktok} target="_blank" className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition">
-                    <LucideIcons.Music2 className="w-5 h-5 text-gray-300" />
-                  </a>
-                )}
-                {cms.socialMedia.youtube && (
-                  <a href={cms.socialMedia.youtube} target="_blank" className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition">
-                    <LucideIcons.PlayCircle className="w-5 h-5 text-gray-300" />
-                  </a>
-                )}
-                {cms.socialMedia.spotify && (
-                  <a href={cms.socialMedia.spotify} target="_blank" className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-white/10 transition">
-                    <LucideIcons.Headphones className="w-5 h-5 text-gray-300" />
-                  </a>
-                )}
-              </div>
+              <span className="font-display text-3xl text-white tracking-wider">
+                BREAK<span className="text-[#D4FF00]">OUT</span>
+              </span>
+              <p className="text-gray-400 text-sm mt-3 max-w-sm leading-relaxed">
+                {cms.footer.aboutText || "The premier modern music distribution platform. Empowering independent artists and labels worldwide."}
+              </p>
             </div>
-            
+
             <div>
-              <h4 className="font-bold text-lg mb-6">Contact Us</h4>
-              <ul className="space-y-4">
-                {cms.socialMedia.email && (
-                  <li>
-                    <a href={`mailto:${cms.socialMedia.email}`} className="text-gray-400 hover:text-white transition flex items-center gap-3">
-                      <LucideIcons.Mail className="w-4 h-4 text-[#00F0FF]" /> {cms.socialMedia.email}
-                    </a>
-                  </li>
-                )}
-                {cms.socialMedia.whatsapp && (
-                  <li>
-                    <a href={`https://wa.me/${cms.socialMedia.whatsapp.replace(/[^0-9]/g, '')}`} className="text-gray-400 hover:text-white transition flex items-center gap-3">
-                      <LucideIcons.MessageCircle className="w-4 h-4 text-[#25D366]" /> {cms.socialMedia.whatsapp}
-                    </a>
-                  </li>
-                )}
+              <h4 className="font-display text-lg text-white mb-4 tracking-wider">NAVIGATION</h4>
+              <ul className="space-y-2 text-xs font-bold uppercase tracking-wider text-gray-400">
+                <li><Link href="#about" className="hover:text-[#D4FF00] transition">About</Link></li>
+                <li><Link href="#distribution" className="hover:text-[#D4FF00] transition">Distribution</Link></li>
+                <li><Link href="#pricing" className="hover:text-[#D4FF00] transition">Pricing</Link></li>
+                <li><Link href="/login" className="hover:text-[#D4FF00] transition">Artist Login</Link></li>
+                <li><Link href="/register" className="hover:text-[#D4FF00] transition">Create Account</Link></li>
               </ul>
             </div>
-            
+
             <div>
-              <h4 className="font-bold text-lg mb-6">Legal</h4>
-              <ul className="space-y-4">
-                <li><Link href="#" className="text-gray-400 hover:text-white transition">Privacy Policy</Link></li>
-                <li><Link href="#" className="text-gray-400 hover:text-white transition">Terms of Service</Link></li>
+              <h4 className="font-display text-lg text-white mb-4 tracking-wider">CONTACT</h4>
+              <ul className="space-y-2 text-xs text-gray-400">
+                <li>Email: support@breakoutmusicrecord.com</li>
+                <li>WhatsApp: +62 812-3456-7890</li>
+                <li>Jakarta, Indonesia</li>
               </ul>
             </div>
           </div>
-          
-          <div className="border-t border-white/5 pt-8 flex flex-col items-center justify-center text-center">
-            <p className="text-gray-600 text-sm">{cms.footer.copyright}</p>
+
+          <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-600 gap-4">
+            <p>{cms.footer.copyright || "© 2026 BREAKOUT Music Distribution. All rights reserved."}</p>
+            <div className="flex gap-6">
+              <Link href="#" className="hover:text-gray-400">Terms of Service</Link>
+              <Link href="#" className="hover:text-gray-400">Privacy Policy</Link>
+            </div>
           </div>
-        </div>
-      </footer>
-      
+        </footer>
+
+      </div>
     </main>
   );
 }

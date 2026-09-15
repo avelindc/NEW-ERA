@@ -3,11 +3,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, useAnimation, useInView } from "framer-motion";
-import { Play, X, Menu } from "lucide-react";
+import { ArrowRight, Play, X, Menu, Sparkles, CheckCircle2, ChevronRight, Music, Disc3, ShieldCheck, Zap, Globe, Layers, BarChart3, TrendingUp, Instagram, Headphones, Youtube } from "lucide-react";
 
 export function AnimatedSection({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) {
   const ref = React.useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
   const controls = useAnimation();
 
   useEffect(() => {
@@ -22,8 +22,8 @@ export function AnimatedSection({ children, className = "", delay = 0 }: { child
       initial="hidden"
       animate={controls}
       variants={{
-        hidden: { opacity: 0, y: 50 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay, ease: "easeOut" } }
+        hidden: { opacity: 0, y: 40 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] } }
       }}
       className={className}
     >
@@ -63,54 +63,120 @@ export function AnimatedCounter({ value, duration = 2 }: { value: number, durati
   return <span ref={ref}>{count.toLocaleString("id-ID")}</span>;
 }
 
+export function NeonArrowButton({ href = "/register", text = "LEARN MORE", size = "normal" }: { href?: string, text?: string, size?: "small" | "normal" | "large" }) {
+  const sizeClasses = size === "small" 
+    ? "px-4 py-2 text-xs" 
+    : size === "large" 
+    ? "px-8 py-4 text-base tracking-wider" 
+    : "px-6 py-2.5 text-xs tracking-wider";
+
+  const arrowSize = size === "small" ? "w-5 h-5 text-[10px]" : size === "large" ? "w-8 h-8 text-sm" : "w-6 h-6 text-xs";
+
+  return (
+    <Link 
+      href={href} 
+      className={`btn-neon-lime uppercase font-black ${sizeClasses} group inline-flex items-center gap-2`}
+    >
+      <span>{text}</span>
+      <span className={`btn-arrow-circle ${arrowSize}`}>
+        <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+      </span>
+    </Link>
+  );
+}
+
+export function RoundArrowBadge({ href = "/register" }: { href?: string }) {
+  return (
+    <Link 
+      href={href}
+      className="w-11 h-11 rounded-full bg-[#D4FF00] hover:bg-[#e2ff4d] text-black flex items-center justify-center shadow-[0_0_20px_rgba(212,255,0,0.35)] hover:scale-110 active:scale-95 transition-all duration-200"
+    >
+      <ArrowRight className="w-5 h-5 stroke-[2.5]" />
+    </Link>
+  );
+}
+
 export function Navbar({ cms }: { cms: any }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled(window.scrollY > 40);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-[#0B0F1A]/80 backdrop-blur-md border-b border-white/10 py-4' : 'bg-transparent py-6'}`}>
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <Link href="/" className="flex items-center">
-          <img src="/logo.png" alt="Breakout Logo" className="h-10 w-auto" />
+    <header className="sticky top-0 z-50 w-full px-4 sm:px-8 pt-4 pb-2 transition-all duration-300">
+      <nav className={`max-w-7xl mx-auto px-5 sm:px-7 py-3 rounded-full transition-all duration-300 flex items-center justify-between ${scrolled ? 'bg-[#150D27]/90 backdrop-blur-xl border border-white/10 shadow-[0_10px_35px_rgba(0,0,0,0.5)]' : 'bg-transparent'}`}>
+        
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="flex items-center">
+            <span className="font-display text-3xl sm:text-4xl text-white tracking-wider leading-none">
+              BREAK<span className="text-[#D4FF00]">OUT</span>
+            </span>
+          </div>
         </Link>
         
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-          <Link href="#releases" className="hover:text-white transition">Releases</Link>
-          <Link href="#artists" className="hover:text-white transition">Artists</Link>
-          <Link href="#videos" className="hover:text-white transition">Videos</Link>
-          <Link href="#about" className="hover:text-white transition">About</Link>
+        {/* Nav Links */}
+        <div className="hidden lg:flex items-center gap-7 text-[12px] font-extrabold uppercase tracking-widest text-gray-300">
+          <Link href="#about" className="hover:text-[#D4FF00] transition-colors">ABOUT</Link>
+          <Link href="#distribution" className="hover:text-[#D4FF00] transition-colors">DISTRIBUTION</Link>
+          <Link href="#features" className="hover:text-[#D4FF00] transition-colors">WHY US</Link>
+          <Link href="#pricing" className="hover:text-[#D4FF00] transition-colors">PRICING</Link>
+          <Link href="#artists" className="hover:text-[#D4FF00] transition-colors">ARTISTS</Link>
+          <Link href="#partners" className="hover:text-[#D4FF00] transition-colors">OUR PARTNERS</Link>
+          <Link href="#contact" className="hover:text-[#D4FF00] transition-colors">CONTACT</Link>
         </div>
         
-        <div className="hidden md:flex items-center gap-4">
-          <Link href="/login" className="text-sm font-medium hover:text-white transition text-gray-300">Login</Link>
-          <Link href={cms.hero.ctaLink} className="text-sm font-semibold bg-white text-black px-5 py-2.5 rounded-full hover:bg-gray-200 transition shadow-[0_0_20px_rgba(255,255,255,0.3)]">{cms.hero.ctaText}</Link>
+        {/* Right CTA */}
+        <div className="hidden sm:flex items-center gap-4">
+          <Link href="/login" className="text-xs font-bold uppercase tracking-wider text-gray-300 hover:text-white px-3 py-2 transition">
+            LOGIN
+          </Link>
+          <Link 
+            href={cms?.hero?.ctaLink || "/register"} 
+            className="btn-neon-lime text-xs tracking-wider uppercase px-5 py-2.5 shadow-[0_0_20px_rgba(212,255,0,0.3)]"
+          >
+            <span>{cms?.hero?.ctaText || "START DISTRIBUTING"}</span>
+            <span className="btn-arrow-circle w-5 h-5 text-[10px]">
+              <ArrowRight className="w-3 h-3 stroke-[3]" />
+            </span>
+          </Link>
         </div>
 
-        <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          <Menu className="w-6 h-6" />
+        {/* Mobile menu trigger */}
+        <button 
+          className="lg:hidden text-white p-2 rounded-xl bg-white/5 hover:bg-white/10"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          {mobileMenuOpen ? <X className="w-6 h-6 text-[#D4FF00]" /> : <Menu className="w-6 h-6" />}
         </button>
-      </div>
+      </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-[#0B0F1A] border-b border-white/10 flex flex-col p-6 gap-4">
-          <Link href="#releases" onClick={() => setMobileMenuOpen(false)}>Releases</Link>
-          <Link href="#artists" onClick={() => setMobileMenuOpen(false)}>Artists</Link>
-          <Link href="#videos" onClick={() => setMobileMenuOpen(false)}>Videos</Link>
-          <Link href="#about" onClick={() => setMobileMenuOpen(false)}>About</Link>
-          <Link href="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
-          <Link href={cms.hero.ctaLink} onClick={() => setMobileMenuOpen(false)} className="text-[#00F0FF]">Start Distributing</Link>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="lg:hidden max-w-7xl mx-auto mt-2 p-6 rounded-3xl bg-[#150D27]/98 backdrop-blur-2xl border border-white/10 shadow-2xl flex flex-col gap-4"
+        >
+          <Link href="#about" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">ABOUT</Link>
+          <Link href="#distribution" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">DISTRIBUTION</Link>
+          <Link href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">WHY US</Link>
+          <Link href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">PRICING</Link>
+          <Link href="#artists" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">ARTISTS</Link>
+          <Link href="#partners" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">OUR PARTNERS</Link>
+          <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
+            <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-center py-2.5 rounded-full border border-white/20 text-white font-bold text-xs uppercase tracking-wider">LOGIN</Link>
+            <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="btn-neon-lime py-3 text-center text-xs uppercase tracking-wider">START DISTRIBUTING</Link>
+          </div>
+        </motion.div>
       )}
-    </nav>
+    </header>
   );
 }
 
@@ -152,16 +218,16 @@ export function PlayerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
       <div className="absolute inset-0" onClick={onClose} />
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="relative w-full max-w-4xl bg-[#111] rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(112,0,255,0.2)]"
+        className="relative w-full max-w-4xl bg-[#110B22] rounded-3xl overflow-hidden border border-white/20 shadow-[0_0_60px_rgba(212,255,0,0.2)]"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/80 text-white rounded-full flex items-center justify-center transition backdrop-blur">
-          <X className="w-5 h-5" />
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/70 hover:bg-black text-white rounded-full flex items-center justify-center transition backdrop-blur border border-white/20">
+          <X className="w-5 h-5 text-[#D4FF00]" />
         </button>
         <div className="w-full aspect-video">
           <iframe 
@@ -181,23 +247,35 @@ export function FeaturedReleaseCard({ release }: { release: any }) {
 
   return (
     <>
-      <div className="glass-card p-4 rounded-3xl group hover:-translate-y-2 transition-all duration-300">
-        <div className="relative aspect-square rounded-2xl overflow-hidden mb-4">
-          <img src={release.coverUrl} alt={release.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="w-16 h-16 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition shadow-[0_0_30px_rgba(255,255,255,0.5)]"
-            >
-              <Play className="w-6 h-6 ml-1" />
-            </button>
+      <div className="relative rounded-[28px] overflow-hidden bg-[#180F2E] border border-white/10 group hover:border-[#D4FF00]/50 transition-all duration-300 shadow-xl flex flex-col">
+        <div className="relative aspect-square overflow-hidden">
+          <img 
+            src={release.coverUrl} 
+            alt={release.title} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#180F2E] via-transparent to-transparent opacity-80" />
+          
+          {/* Play Trigger */}
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-[#D4FF00] hover:bg-white text-black flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 active:scale-95"
+          >
+            <Play className="w-5 h-5 ml-0.5 fill-black" />
+          </button>
+        </div>
+        
+        <div className="p-5 flex-1 flex flex-col justify-between">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#D4FF00] block mb-1">
+              OFFICIAL RELEASE
+            </span>
+            <h3 className="text-xl font-bold text-white leading-snug line-clamp-1">{release.title}</h3>
+            <p className="text-gray-400 text-sm mt-0.5">{release.artist}</p>
           </div>
         </div>
-        <div className="px-2">
-          <h3 className="text-xl font-bold text-white mb-1 truncate">{release.title}</h3>
-          <p className="text-gray-400 text-sm">{release.artist}</p>
-        </div>
       </div>
+
       <PlayerModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
