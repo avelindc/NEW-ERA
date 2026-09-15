@@ -1,7 +1,7 @@
 "use server";
 
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client } from "@/lib/r2";
+import { r2Client, BUCKET_ASSETS, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
 import { v4 as uuidv4 } from "uuid";
 
 export async function uploadCMSImageAction(formData: FormData) {
@@ -13,10 +13,8 @@ export async function uploadCMSImageAction(formData: FormData) {
     const key = `cms/${uuidv4()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const bucket = process.env.R2_BUCKET_ASSETS || process.env.R2_BUCKET_RELEASES || "assets";
-
     const command = new PutObjectCommand({
-      Bucket: bucket,
+      Bucket: BUCKET_ASSETS,
       Key: key,
       Body: buffer,
       ContentType: file.type || "image/jpeg",
@@ -24,7 +22,7 @@ export async function uploadCMSImageAction(formData: FormData) {
 
     await r2Client.send(command);
 
-    const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_ASSETS || process.env.NEXT_PUBLIC_R2_PUBLIC_URL_RELEASES || "https://assets.breakoutmusic.online";
+    const publicBase = R2_PUBLIC_URL_ASSETS;
     const url = `${publicBase.replace(/\/$/, '')}/${key}`;
     console.log("CMS image uploaded successfully to R2:", url);
     return { url };
