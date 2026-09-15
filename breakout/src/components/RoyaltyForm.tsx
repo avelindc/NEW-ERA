@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Save, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { addRoyaltyAction } from "@/app/actions/royalties";
 
 export function RoyaltyForm({ artists }: { artists: any[] }) {
-  const [isPending, startTransition] = useTransition();
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedArtistId, setSelectedArtistId] = useState("");
   const [revenue, setRevenue] = useState<number | "">("");
   const [cut, setCut] = useState<number | "">(0);
@@ -16,37 +16,35 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
 
-  const selectedArtist = artists.find(a => a.id === selectedArtistId);
-  const availableSongs = selectedArtist?.releases || [];
-
   const finalRevenue = typeof revenue === "number" && typeof cut === "number" ? revenue * (1 - cut / 100) : 0;
   
   const selectedMonth = monthYear ? parseInt(monthYear.split("-")[1]) : "";
   const selectedYear = monthYear ? parseInt(monthYear.split("-")[0]) : "";
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (isSaving) return;
     setResult(null);
+    setIsSaving(true);
     const formData = new FormData(e.currentTarget);
     const form = e.currentTarget;
 
-    startTransition(async () => {
-      try {
-        const res = await addRoyaltyAction(formData);
-        if (res && res.error) {
-          setResult({ error: res.error });
-        } else {
-          setResult({ success: true });
-          // Reset form fields
-          setSelectedArtistId("");
-          setRevenue("");
-          setCut(0);
-          form.reset();
-        }
-      } catch (err) {
-        setResult({ error: "Terjadi kesalahan, coba lagi" });
+    try {
+      const res = await addRoyaltyAction(formData);
+      if (res && res.error) {
+        setResult({ error: res.error });
+      } else {
+        setResult({ success: true });
+        setSelectedArtistId("");
+        setRevenue("");
+        setCut(0);
+        form.reset();
       }
-    });
+    } catch (err) {
+      setResult({ error: "Terjadi kesalahan, coba lagi" });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -102,7 +100,7 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
         <div className="bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-100/50 p-4 rounded-xl flex items-center justify-between shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-purple-400/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
           <span className="text-sm font-bold text-purple-900 relative z-10">Sisa Bersih (Yang Masuk Database):</span>
-          <span className="text-xl font-black text-purple-700 relative z-10">Rp {Math.round(finalRevenue).toLocaleString('id-ID')}</span>
+          <span className="text-xl font-black text-purple-700 relative z-10">Rp {Math.round(finalRevenue).toLocaleString("id-ID")}</span>
         </div>
       )}
 
@@ -146,11 +144,11 @@ export function RoyaltyForm({ artists }: { artists: any[] }) {
 
       <button
         type="submit"
-        disabled={isPending}
+        disabled={isSaving}
         className="w-full py-3.5 mt-6 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold hover:shadow-lg hover:shadow-purple-500/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
       >
-        {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-        {isPending ? "Menyimpan..." : "Save Royalty Data"}
+        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+        {isSaving ? "Menyimpan..." : "Save Royalty Data"}
       </button>
     </form>
   );
