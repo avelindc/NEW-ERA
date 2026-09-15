@@ -24,7 +24,7 @@ export async function uploadCMSImageAction(formData: FormData) {
 
     await r2Client.send(command);
 
-    const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_ASSETS || process.env.NEXT_PUBLIC_R2_PUBLIC_URL_RELEASES || "https://assets.breakoutmusicrecord.com";
+    const publicBase = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_ASSETS || process.env.NEXT_PUBLIC_R2_PUBLIC_URL_RELEASES || "https://assets.breakoutmusic.online";
     const url = `${publicBase.replace(/\/$/, '')}/${key}`;
     console.log("CMS image uploaded successfully to R2:", url);
     return { url };

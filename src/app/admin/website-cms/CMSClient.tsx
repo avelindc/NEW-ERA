@@ -40,13 +40,13 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, path: string[], fieldId?: string) => {
-    if (!e.target.files || e.target.files.length === 0) return;
+    if (!e.target.files || e.target.files.length === 0) return null;
     const file = e.target.files[0];
     
-    setUploadingField(fieldId || path.join("."));
+    const activeFieldId = fieldId || path.join(".");
+    setUploadingField(activeFieldId);
     
     try {
-      // 1. Direct fast upload to Cloudflare R2 Worker
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);
       
@@ -59,15 +59,17 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
       if (path.length > 0 && imageUrl) {
         updateNestedField(path, imageUrl);
       }
-      return imageUrl;
+      
+      setMessage({ 
+        text: 'Gambar berhasil diupload ke Cloudflare R2! Silakan klik tombol "Simpan Perubahan" agar langsung aktif di website.', 
+        type: 'success' 
+      });
 
-      if (path.length > 0 && imageUrl) {
-        updateNestedField(path, imageUrl);
-      }
       return imageUrl;
     } catch (err: any) {
       setUploadingField(null);
-      alert("Upload failed: " + (err.message || "Failed to upload image"));
+      setMessage({ text: "Upload gagal: " + (err.message || "Failed to upload image"), type: 'error' });
+      alert("Upload gagal: " + (err.message || "Failed to upload image"));
       return null;
     }
   };
@@ -108,53 +110,73 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
   const tabs: { id: TabType, name: string, icon: any }[] = [
     { id: "seo", name: "SEO", icon: Settings },
     { id: "design", name: "Design & BG", icon: LayoutTemplate },
-    { id: "hero", name: "Hero", icon: LayoutTemplate },
+    { id: "hero", name: "Hero", icon: Info },
     { id: "about", name: "About Us", icon: Info },
+    { id: "aboutLabel", name: "About Label", icon: Disc },
     { id: "features", name: "Features", icon: Star },
     { id: "pricing", name: "Pricing", icon: CreditCard },
     { id: "faq", name: "FAQ", icon: MessageCircle },
     { id: "testimonials", name: "Testimonials", icon: Star },
     { id: "partners", name: "Partners", icon: LinkIcon },
-    { id: "featuredReleases", name: "Releases", icon: Disc },
-    { id: "featuredArtists", name: "Artists", icon: Users },
-    { id: "musicVideos", name: "Videos", icon: Video },
-    { id: "aboutLabel", name: "About Label", icon: Info },
-    { id: "stats", name: "Statistics", icon: BarChart },
+    { id: "featuredReleases", name: "Featured Releases", icon: Disc },
+    { id: "featuredArtists", name: "Featured Artists", icon: Users },
+    { id: "musicVideos", name: "Music Videos", icon: Video },
     { id: "socialMedia", name: "Social Media", icon: Share2 },
+    { id: "stats", name: "Stats", icon: BarChart },
     { id: "contact", name: "Contact", icon: Phone },
-    { id: "footer", name: "Footer", icon: LayoutTemplate },
+    { id: "footer", name: "Footer", icon: Settings },
   ];
 
   return (
-    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row min-h-[700px]">
-      
+    <div className="flex flex-col md:flex-row min-h-[calc(100vh-120px)] bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
       {/* Sidebar Tabs */}
-      <div className="w-full md:w-64 bg-gray-50 border-r border-gray-100 p-4 flex flex-col gap-2">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-                activeTab === tab.id 
-                  ? "bg-blue-600 text-white shadow-md" 
-                  : "text-gray-600 hover:bg-gray-200"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {tab.name}
-            </button>
-          )
-        })}
+      <div className="w-full md:w-64 bg-gray-50 border-r border-gray-200 p-4 flex flex-col justify-between">
+        <div className="space-y-1">
+          <div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
+            Section Website
+          </div>
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition ${
+                  isActive 
+                    ? "bg-blue-600 text-white shadow-sm" 
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? "text-white" : "text-gray-400"}`} />
+                {tab.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 p-6 md:p-8 flex flex-col h-full">
+        {/* Header with Save Button */}
+        <div className="flex items-center justify-between pb-6 mb-6 border-b border-gray-100">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Website CMS</h1>
+            <p className="text-sm text-gray-500">Kelola konten tampilan landing page dari satu tempat.</p>
+          </div>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold rounded-xl transition shadow-md shadow-blue-600/20 text-sm"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
+          </button>
+        </div>
         
         {message && (
           <div className={`mb-6 p-4 rounded-xl text-sm font-bold flex items-center gap-2 ${
-            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+            message.type === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200'
           }`}>
             {message.text}
           </div>
@@ -509,51 +531,76 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
           {activeTab === "testimonials" && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Testimoni</h2>
-                <button onClick={() => addArrayItem('testimonials', { name: 'Nama', role: 'Peran', content: 'Komentar', avatarUrl: '' })} className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-xl text-sm font-bold transition">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Testimoni Artis</h2>
+                  <p className="text-xs text-gray-500">Upload foto profil/avatar artis dan tulis kata-kata testimoni.</p>
+                </div>
+                <button onClick={() => addArrayItem('testimonials', { name: 'Nama Artis', role: 'Artist', content: 'Komentar testimoni...', avatarUrl: '' })} className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-xl text-sm font-bold transition">
                   <Plus className="w-4 h-4" /> Tambah Testimoni
                 </button>
               </div>
               
               <div className="grid md:grid-cols-2 gap-4">
                 {data.testimonials.map((item) => (
-                  <div key={item.id} className="p-4 bg-gray-50 border border-gray-200 rounded-xl relative">
-                    <button onClick={() => removeArrayItem('testimonials', item.id)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+                  <div key={item.id} className="p-4 bg-gray-50 border border-gray-200 rounded-xl relative shadow-sm">
+                    <button onClick={() => removeArrayItem('testimonials', item.id)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition" title="Hapus Testimoni">
                       <Trash2 className="w-4 h-4" />
                     </button>
-                    <div className="space-y-3 pr-12">
+                    <div className="space-y-3 pr-10">
                       <div className="flex gap-2">
                         <div className="flex-1">
-                          <label className="block text-xs font-medium text-gray-500 mb-1">Nama</label>
-                          <input type="text" value={item.name} onChange={(e) => updateArrayItem('testimonials', item.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500" />
+                          <label className="block text-xs font-medium text-gray-500 mb-1">Nama Artis</label>
+                          <input type="text" value={item.name} onChange={(e) => updateArrayItem('testimonials', item.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm font-bold" />
                         </div>
                         <div className="flex-1">
                           <label className="block text-xs font-medium text-gray-500 mb-1">Peran / Profesi</label>
-                          <input type="text" value={item.role} onChange={(e) => updateArrayItem('testimonials', item.id, 'role', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500" />
+                          <input type="text" value={item.role} onChange={(e) => updateArrayItem('testimonials', item.id, 'role', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Isi Pesan</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Isi Testimoni</label>
                         <textarea rows={3} value={item.content} onChange={(e) => updateArrayItem('testimonials', item.id, 'content', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 mb-1">Avatar URL</label>
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Foto / Avatar Artis</label>
                         <div className="flex gap-2 items-center">
-                          <input type="text" value={item.avatarUrl} onChange={(e) => updateArrayItem('testimonials', item.id, 'avatarUrl', e.target.value)} className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-                          <label className="cursor-pointer bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center">
-                            {uploadingField === `testimoni-${item.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                              setUploadingField(`testimoni-${item.id}`);
-                              const formData = new FormData();
-                              formData.append("file", e.target.files![0]);
-                              uploadCMSImageAction(formData).then(res => {
-                                setUploadingField(null);
-                                if(res.url) updateArrayItem('testimonials', item.id, 'avatarUrl', res.url);
-                              });
-                            }} />
+                          <input 
+                            type="text" 
+                            value={item.avatarUrl} 
+                            onChange={(e) => updateArrayItem('testimonials', item.id, 'avatarUrl', e.target.value)} 
+                            placeholder="https://assets.breakoutmusic.online/..."
+                            className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-xs font-mono" 
+                          />
+                          <label className="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 border border-blue-200 whitespace-nowrap">
+                            {uploadingField === `testimonials.${item.id}.avatarUrl` ? <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> : <ImageIcon className="w-4 h-4 text-blue-600" />}
+                            <span>{uploadingField === `testimonials.${item.id}.avatarUrl` ? 'Uploading...' : 'Pilih Foto'}</span>
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              accept="image/*" 
+                              onChange={(e) => handleFileUpload(e, [], `testimonials.${item.id}.avatarUrl`).then(url => {
+                                if (url) updateArrayItem('testimonials', item.id, 'avatarUrl', url);
+                              })} 
+                            />
                           </label>
                         </div>
-                        {item.avatarUrl && <img src={item.avatarUrl} alt="Avatar" className="mt-2 w-10 h-10 rounded-full object-cover" />}
+                        {item.avatarUrl && (
+                          <div className="mt-2 flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 w-fit">
+                            <img 
+                              src={item.avatarUrl} 
+                              alt="Avatar" 
+                              className="w-10 h-10 rounded-full object-cover border" 
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                            <button 
+                              type="button" 
+                              onClick={() => updateArrayItem('testimonials', item.id, 'avatarUrl', '')} 
+                              className="text-xs text-red-500 hover:text-red-700 font-semibold hover:underline"
+                            >
+                              Hapus Foto
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -566,7 +613,10 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
           {activeTab === "partners" && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Partner Logos</h2>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Partner & DSP Logos</h2>
+                  <p className="text-xs text-gray-500">Logo mitra seperti Spotify, Apple Music, YouTube Music, dll.</p>
+                </div>
                 <button onClick={() => addArrayItem('partners', { name: 'Partner', logoUrl: '' })} className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-xl text-sm font-bold transition">
                   <Plus className="w-4 h-4" /> Tambah Logo
                 </button>
@@ -574,33 +624,55 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
               
               <div className="grid md:grid-cols-3 gap-4">
                 {data.partners.map((item) => (
-                  <div key={item.id} className="p-4 bg-gray-50 border border-gray-200 rounded-xl relative">
-                    <button onClick={() => removeArrayItem('partners', item.id)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+                  <div key={item.id} className="p-4 bg-gray-50 border border-gray-200 rounded-xl relative shadow-sm">
+                    <button onClick={() => removeArrayItem('partners', item.id)} className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition" title="Hapus Logo">
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <div className="space-y-3 pr-10">
                       <div>
                         <label className="block text-xs font-medium text-gray-500 mb-1">Nama Partner</label>
-                        <input type="text" value={item.name} onChange={(e) => updateArrayItem('partners', item.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500" />
+                        <input type="text" value={item.name} onChange={(e) => updateArrayItem('partners', item.id, 'name', e.target.value)} className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm font-bold" />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-500 mb-1">Logo URL</label>
                         <div className="flex gap-2 items-center">
-                          <input type="text" value={item.logoUrl} onChange={(e) => updateArrayItem('partners', item.id, 'logoUrl', e.target.value)} className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-sm" />
-                          <label className="cursor-pointer bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center">
-                            {uploadingField === `partner-${item.id}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                              setUploadingField(`partner-${item.id}`);
-                              const formData = new FormData();
-                              formData.append("file", e.target.files![0]);
-                              uploadCMSImageAction(formData).then(res => {
-                                setUploadingField(null);
-                                if(res.url) updateArrayItem('partners', item.id, 'logoUrl', res.url);
-                              });
-                            }} />
+                          <input 
+                            type="text" 
+                            value={item.logoUrl} 
+                            onChange={(e) => updateArrayItem('partners', item.id, 'logoUrl', e.target.value)} 
+                            placeholder="https://assets.breakoutmusic.online/..."
+                            className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 text-xs font-mono" 
+                          />
+                          <label className="cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 border border-blue-200 whitespace-nowrap">
+                            {uploadingField === `partners.${item.id}.logoUrl` ? <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> : <ImageIcon className="w-4 h-4 text-blue-600" />}
+                            <span>{uploadingField === `partners.${item.id}.logoUrl` ? 'Uploading...' : 'Pilih Logo'}</span>
+                            <input 
+                              type="file" 
+                              className="hidden" 
+                              accept="image/*" 
+                              onChange={(e) => handleFileUpload(e, [], `partners.${item.id}.logoUrl`).then(url => {
+                                if (url) updateArrayItem('partners', item.id, 'logoUrl', url);
+                              })} 
+                            />
                           </label>
                         </div>
-                        {item.logoUrl && <div className="mt-2 bg-gray-200 rounded p-2"><img src={item.logoUrl} alt="Logo" className="h-10 w-auto object-contain" /></div>}
+                        {item.logoUrl && (
+                          <div className="mt-2 flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 w-fit">
+                            <img 
+                              src={item.logoUrl} 
+                              alt="Logo" 
+                              className="h-8 w-auto object-contain max-w-[120px]" 
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                            <button 
+                              type="button" 
+                              onClick={() => updateArrayItem('partners', item.id, 'logoUrl', '')} 
+                              className="text-xs text-red-500 hover:text-red-700 font-semibold hover:underline"
+                            >
+                              Hapus Logo
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

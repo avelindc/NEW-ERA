@@ -388,11 +388,15 @@ export default async function LandingPage() {
                     <p className="text-gray-300 text-sm leading-relaxed italic">"{testi.content}"</p>
                   </div>
                   <div className="flex items-center gap-3.5 mt-6 pt-4 border-t border-white/10">
-                    {testi.avatarUrl ? (
-                      <img src={testi.avatarUrl} alt={testi.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[#D4FF00]/30" />
+                    {testi.avatarUrl && !testi.avatarUrl.includes("supabase.co") ? (
+                      <img 
+                        src={testi.avatarUrl} 
+                        alt={testi.name} 
+                        className="w-11 h-11 rounded-full object-cover ring-2 ring-[#D4FF00]/30" 
+                      />
                     ) : (
-                      <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center font-bold text-white text-sm">
-                        {testi.name?.[0] || "A"}
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#D4FF00]/20 to-purple-600/30 border border-[#D4FF00]/40 flex items-center justify-center font-black text-[#D4FF00] text-sm uppercase">
+                        {testi.name?.substring(0, 2) || "AR"}
                       </div>
                     )}
                     <div>
