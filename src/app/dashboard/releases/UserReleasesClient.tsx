@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -237,13 +237,6 @@ export default function UserReleasesClient({
             Daftar rilis musik, pemutar audio, serta unduhan master artwork dan audio.
           </p>
         </div>
-        <Link
-          href="/dashboard/releases/new"
-          className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-medium text-sm shadow-md shadow-red-500/20 transition-all hover:scale-[1.02]"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          Rilis Lagu Baru
-        </Link>
       </div>
 
       {/* Filters Bar */}
