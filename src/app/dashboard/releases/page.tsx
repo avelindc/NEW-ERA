@@ -1,10 +1,10 @@
 import { auth } from "@/auth";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { Disc, Plus } from "lucide-react";
 import Link from "next/link";
-import { UserReleasesClient } from "./UserReleasesClient";
+import UserReleasesClient from "./UserReleasesClient";
 
-const prisma = new PrismaClient();
+export const dynamic = "force-dynamic";
 
 export default async function MyReleasesPage() {
   const session = await auth();
@@ -19,12 +19,44 @@ export default async function MyReleasesPage() {
   
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    include: { artists: { include: { releases: { orderBy: { createdAt: 'desc' }, include: { tracks: true } } } } }
+    include: {
+      artists: {
+        include: {
+          releases: {
+            orderBy: { createdAt: "desc" },
+            include: { tracks: true, artist: true }
+          }
+        }
+      }
+    }
   });
 
-  const releases = (user?.artists?.flatMap(a => a.releases || []) || []).sort(
+  const rawReleases = (user?.artists?.flatMap(a => a.releases || []) || []).sort(
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
   );
+
+  const releases = rawReleases.map((r) => ({
+    id: r.id,
+    title: r.title,
+    genre: r.genre,
+    type: r.type,
+    status: r.status,
+    coverArtworkUrl: r.coverArtworkUrl,
+    releaseDate: r.releaseDate instanceof Date ? r.releaseDate.toISOString() : String(r.releaseDate),
+    upc: r.upc || null,
+    tracks: (r.tracks || []).map((t) => ({
+      id: t.id,
+      title: t.title,
+      audioUrl: t.audioUrl,
+      isrc: t.isrc || null,
+      composer: t.composer || null,
+      producer: t.producer || null,
+      lyrics: t.lyrics || null,
+    })),
+    artist: r.artist ? { name: r.artist.stageName } : null,
+  }));
+
+  const artistName = user?.artists?.[0]?.stageName || user?.name || "Artist";
 
   return (
     <div className="animate-fade-in w-full pb-10 px-4 md:px-0">
@@ -33,7 +65,7 @@ export default async function MyReleasesPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">My Releases</h1>
           <p className="text-gray-500 text-sm font-medium">{releases.length} releases found</p>
         </div>
-        <Link href="/dashboard/upload" className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2">
+        <Link href="/dashboard/upload" className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold shadow-md shadow-red-500/20 transition flex items-center justify-center gap-2">
           <Plus className="w-5 h-5" /> New Release
         </Link>
       </div>
@@ -41,15 +73,15 @@ export default async function MyReleasesPage() {
       {releases.length === 0 ? (
         <div className="bg-white rounded-3xl border border-gray-100 p-10 md:p-16 flex flex-col items-center justify-center text-center shadow-sm">
           <Disc className="w-16 h-16 text-gray-300 mb-5" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Releases Found</h2>
-          <p className="text-gray-500 mb-8 max-w-md">You haven't uploaded any music yet. Start your journey by uploading your first track.</p>
-          <Link href="/dashboard/upload" className="px-8 py-3.5 rounded-xl bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 transition">
-            Upload Music
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Belum Ada Rilis Musik</h2>
+          <p className="text-gray-500 mb-8 max-w-md">Anda belum mengunggah lagu. Mulai rilis karya musik pertama Anda sekarang.</p>
+          <Link href="/dashboard/upload" className="px-8 py-3.5 rounded-xl bg-red-50 text-red-600 font-bold hover:bg-red-100 transition">
+            Upload Musik
           </Link>
         </div>
       ) : (
-        <div className="mt-8">
-          <UserReleasesClient releases={releases as any} />
+        <div className="mt-4">
+          <UserReleasesClient releases={releases} artistName={artistName} />
         </div>
       )}
     </div>

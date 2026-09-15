@@ -1,20 +1,19 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { MyReleasesList } from "./MyReleasesList";
 
-const prisma = new PrismaClient();
+export const dynamic = "force-dynamic";
 
 export default async function AdminMyReleasesPage() {
-  // Fetch only approved (released/active catalog) releases
   const approvedReleases = await prisma.release.findMany({
-    where: { status: 'APPROVED', isImported: false },
+    where: { status: "APPROVED", isImported: false },
     include: { 
       artist: { include: { user: true } }, 
       tracks: true 
     },
-    orderBy: { updatedAt: 'desc' }
+    orderBy: { updatedAt: "desc" }
   });
 
-  const serializedReleases = approvedReleases.map(release => {
+  const serializedReleases = approvedReleases.map((release) => {
     const releaseDateStr = release.releaseDate instanceof Date && !isNaN(release.releaseDate.getTime())
       ? release.releaseDate.toISOString()
       : new Date().toISOString();
@@ -30,9 +29,9 @@ export default async function AdminMyReleasesPage() {
       coverArtworkUrl: release.coverArtworkUrl,
       status: release.status,
       artistUserId: release.artist?.userId || "",
-      artistName: release.artist?.user?.name || "Artist",
+      artistName: release.artist?.user?.name || release.artist?.stageName || "Artist",
       artistEmail: release.artist?.user?.email || "",
-      tracks: (release.tracks || []).map(t => ({
+      tracks: (release.tracks || []).map((t) => ({
         id: t.id,
         title: t.title,
         audioUrl: t.audioUrl,
@@ -55,7 +54,7 @@ export default async function AdminMyReleasesPage() {
         </div>
         <div className="flex items-center gap-3">
           <div className="px-4 py-2 bg-purple-50 border border-purple-100 text-purple-700 rounded-2xl text-xs font-bold shadow-sm">
-            🎵 Total: <span className="font-extrabold text-sm">{approvedReleases.length}</span> Rilisan
+            Total: <span className="font-extrabold text-sm">{approvedReleases.length}</span> Rilisan
           </div>
         </div>
       </div>
