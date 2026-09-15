@@ -82,7 +82,7 @@ export async function deleteUserAction(userId: string) {
 export async function updateReleaseStatusAction(
   releaseId: string,
   artistUserId: string,
-  status: "APPROVED" | "REJECTED",
+  status: string,
   userName: string,
   userEmail: string,
   title: string,

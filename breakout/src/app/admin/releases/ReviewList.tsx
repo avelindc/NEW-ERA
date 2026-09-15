@@ -197,8 +197,17 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
+      const releaseToUpdate = releases.find(r => r.id === id);
+      if (!releaseToUpdate) return;
       setIsUpdating(true);
-      const res = await updateReleaseStatusAction(id, newStatus);
+      const res = await updateReleaseStatusAction(
+        id,
+        releaseToUpdate.user.id,
+        newStatus,
+        releaseToUpdate.user.name || "Artist",
+        releaseToUpdate.user.email || "",
+        releaseToUpdate.title
+      );
       if (res.success) {
         setReleases(releases.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
         if (selected && selected.id === id) {
@@ -413,7 +422,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
                   {currentTrack.track.title}
                 </p>
                 <p className="text-xs text-slate-400 truncate mt-0.5">
-                  {currentTrack.release.user?.artist?.name || currentTrack.release.user?.name || "Breakout Artist"} â€¢ {currentTrack.release.title}
+                  {currentTrack.release.user?.artist?.name || currentTrack.release.user?.name || "Breakout Artist"} Ã¢â‚¬Â¢ {currentTrack.release.title}
                 </p>
               </div>
             </div>
@@ -497,7 +506,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
                 <div>
                   <h3 className="text-xl font-bold text-slate-900">{selected.title}</h3>
                   <p className="text-sm text-slate-500 mt-0.5">
-                    {selected.user?.artist?.name || selected.user?.name} â€¢ {selected.genre}
+                    {selected.user?.artist?.name || selected.user?.name} Ã¢â‚¬Â¢ {selected.genre}
                   </p>
                   <div className="mt-2 flex items-center gap-2">
                     <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md">
