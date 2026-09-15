@@ -7,10 +7,66 @@ import { isMaintenanceActive } from "@/lib/maintenance";
 import { sendTelegramReleaseNotification } from "@/lib/telegramBot";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { r2Client, BUCKET_RELEASES } from "@/lib/r2";
-import { getR2PublicUrl } from "@/lib/r2-helpers";
+import { r2Client, BUCKET_RELEASES, BUCKET_ASSETS, BUCKET_PROFILES, R2_PUBLIC_URL_ASSETS, R2_PUBLIC_URL_RELEASES, R2_PUBLIC_URL_PROFILES } from "@/lib/r2";
+import { generateR2PresignedUploadUrl } from "@/lib/r2-helpers";
 
 const prisma = new PrismaClient();
+
+export async function getPresignedUploadUrlAction({
+  filename,
+  contentType,
+  type,
+  artistId
+}: {
+  filename: string;
+  contentType: string;
+  type: "cover" | "audio" | "profile" | "cms";
+  artistId?: string;
+}) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { error: "Unauthorized" };
+  }
+
+  const timestamp = Date.now();
+  const cleanFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
+  const ext = cleanFilename.split(".").pop() || (type === "audio" ? "mp3" : "jpg");
+
+  let bucket = BUCKET_ASSETS;
+  let key = "";
+  let publicUrl = "";
+
+  if (type === "cover") {
+    bucket = BUCKET_ASSETS;
+    key = `covers/${artistId || session.user.id}-${timestamp}.${ext}`;
+    publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
+  } else if (type === "audio") {
+    bucket = BUCKET_RELEASES;
+    key = `audio/${artistId || session.user.id}-${timestamp}.${ext}`;
+    publicUrl = `${R2_PUBLIC_URL_RELEASES.replace(/\/$/, "")}/${key}`;
+  } else if (type === "cms") {
+    bucket = BUCKET_ASSETS;
+    key = `cms/${session.user.id}-${timestamp}.${ext}`;
+    publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
+  } else {
+    bucket = BUCKET_PROFILES;
+    key = `profiles/${session.user.id}-${timestamp}.${ext}`;
+    publicUrl = `${R2_PUBLIC_URL_PROFILES.replace(/\/$/, "")}/${key}`;
+  }
+
+  const presigned = await generateR2PresignedUploadUrl(bucket, key, contentType || (type === "audio" ? "audio/mpeg" : "image/jpeg"), 1800);
+  if (!presigned.success || !presigned.url) {
+    return { error: presigned.error || "Gagal membuat URL upload R2" };
+  }
+
+  return {
+    success: true,
+    uploadUrl: presigned.url,
+    publicUrl,
+    key,
+    bucket
+  };
+}
 
 
 

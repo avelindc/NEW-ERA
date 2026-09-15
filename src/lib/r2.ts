@@ -34,17 +34,18 @@ export const R2_PUBLIC_URL_RELEASES = process.env.NEXT_PUBLIC_R2_PUBLIC_URL_RELE
 
 // Validate R2 configuration
 export function validateR2Config(): { isValid: boolean; error?: string } {
-  if (!process.env.R2_ENDPOINT) {
+  const endpoint = process.env.R2_ENDPOINT || DEFAULT_R2_ENDPOINT;
+  const accessKey = process.env.R2_ACCESS_KEY_ID || DEFAULT_R2_ACCESS_KEY;
+  const secretKey = process.env.R2_SECRET_ACCESS_KEY || DEFAULT_R2_SECRET_KEY;
+
+  if (!endpoint) {
     return { isValid: false, error: "R2_ENDPOINT is not configured" };
   }
-  if (!process.env.R2_ACCESS_KEY_ID) {
+  if (!accessKey) {
     return { isValid: false, error: "R2_ACCESS_KEY_ID is not configured" };
   }
-  if (!process.env.R2_SECRET_ACCESS_KEY) {
+  if (!secretKey) {
     return { isValid: false, error: "R2_SECRET_ACCESS_KEY is not configured" };
-  }
-  if (!R2_PUBLIC_URL_RELEASES) {
-    return { isValid: false, error: "NEXT_PUBLIC_R2_PUBLIC_URL_RELEASES is not configured" };
   }
   return { isValid: true };
 }

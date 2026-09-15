@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { submitMusicMetadataAction } from "@/app/actions/upload";
+import { submitMusicMetadataAction, getPresignedUploadUrlAction } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles } from "lucide-react";
@@ -145,53 +145,72 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
         console.log("[UploadForm] Audio:", audioFile.name, `${Math.round(audioFile.size / 1024 / 1024)}MB`);
         console.log("[UploadForm] Artist ID:", primaryArtistId);
         
-        let coverUrl, audioUrl;
+        let coverUrl = "";
+        let audioUrl = "";
         
         try {
-          const timestamp = Date.now();
-          const coverExt = coverFile.name.split('.').pop() || 'jpg';
-          const audioExt = audioFile.name.split('.').pop() || 'mp3';
-          const coverFilename = `${primaryArtistId}-${timestamp}.${coverExt}`;
-          const audioFilename = `${primaryArtistId}-${timestamp + 1}.${audioExt}`;
-
-          console.log("[UploadForm] Uploading cover directly to Cloudflare R2...");
-          const coverFormData = new FormData();
-          coverFormData.append("file", coverFile);
-          coverFormData.append("type", "cover");
-
-          const coverRes = await fetch("/api/upload", {
-            method: "POST",
-            body: coverFormData,
+          // 1. Upload Cover directly to Cloudflare R2 via Presigned URL
+          console.log("[UploadForm] Getting presigned URL for cover artwork...");
+          const coverPresign = await getPresignedUploadUrlAction({
+            filename: coverFile.name,
+            contentType: coverFile.type || "image/jpeg",
+            type: "cover",
+            artistId: primaryArtistId
           });
-          const coverData = await coverRes.json();
-          if (!coverRes.ok || !coverData.success) {
-            throw new Error(`Cover upload failed: ${coverData.error || coverRes.statusText}`);
+
+          if (coverPresign.error || !coverPresign.uploadUrl || !coverPresign.publicUrl) {
+            throw new Error(coverPresign.error || "Gagal mendapatkan izin upload cover artwork.");
           }
-          coverUrl = coverData.url;
-          console.log("[UploadForm] ✓ Cover uploaded:", coverUrl);
 
-          console.log("[UploadForm] Uploading audio directly to Cloudflare R2...");
-          const audioFormData = new FormData();
-          audioFormData.append("file", audioFile);
-          audioFormData.append("type", "audio");
-
-          const audioRes = await fetch("/api/upload", {
-            method: "POST",
-            body: audioFormData,
+          console.log("[UploadForm] Uploading cover artwork directly to R2...", coverPresign.publicUrl);
+          const coverPutRes = await fetch(coverPresign.uploadUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": coverFile.type || "image/jpeg"
+            },
+            body: coverFile
           });
-          const audioData = await audioRes.json();
-          if (!audioRes.ok || !audioData.success) {
-            throw new Error(`Audio upload failed: ${audioData.error || audioRes.statusText}`);
+
+          if (!coverPutRes.ok) {
+            throw new Error(`Cover upload gagal: ${coverPutRes.status} ${coverPutRes.statusText}`);
           }
-          audioUrl = audioData.url;
-          console.log("[UploadForm] ✓ Audio uploaded:", audioUrl);
+          coverUrl = coverPresign.publicUrl;
+          console.log("[UploadForm] ✓ Cover uploaded successfully:", coverUrl);
+
+          // 2. Upload Audio directly to Cloudflare R2 via Presigned URL (No Vercel 4.5MB limit!)
+          console.log("[UploadForm] Getting presigned URL for audio file...");
+          const audioPresign = await getPresignedUploadUrlAction({
+            filename: audioFile.name,
+            contentType: audioFile.type || "audio/mpeg",
+            type: "audio",
+            artistId: primaryArtistId
+          });
+
+          if (audioPresign.error || !audioPresign.uploadUrl || !audioPresign.publicUrl) {
+            throw new Error(audioPresign.error || "Gagal mendapatkan izin upload audio file.");
+          }
+
+          console.log("[UploadForm] Uploading audio directly to R2...", audioPresign.publicUrl);
+          const audioPutRes = await fetch(audioPresign.uploadUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": audioFile.type || "audio/mpeg"
+            },
+            body: audioFile
+          });
+
+          if (!audioPutRes.ok) {
+            throw new Error(`Audio upload gagal: ${audioPutRes.status} ${audioPutRes.statusText}`);
+          }
+          audioUrl = audioPresign.publicUrl;
+          console.log("[UploadForm] ✓ Audio uploaded successfully:", audioUrl);
 
         } catch (e: any) {
-          console.error("[UploadForm] File upload exception:", e);
-          throw new Error(`[Tahap 1] Gagal upload file: ${e.message}`);
+          console.error("[UploadForm] Direct R2 Upload Exception:", e);
+          throw new Error(`[Tahap 1] Gagal upload file: ${e.message || "Error saat upload ke R2"}`);
         }
         
-        console.log("[UploadForm] [Tahap 1] Upload berhasil");
+        console.log("[UploadForm] [Tahap 1] Upload berhasil ke Cloudflare R2");
         
         // 2. Submit Metadata with uploaded URLs
         const metadata = {
