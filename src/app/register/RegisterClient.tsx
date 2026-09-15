@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { registerAction } from "@/app/actions/auth";
@@ -45,10 +45,9 @@ export function RegisterClient({ bgUrl }: { bgUrl?: string }) {
   }
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-4 overflow-hidden py-12" style={{backgroundImage:"url('/auth-bg.jpg')",backgroundSize:"cover",backgroundPosition:"center top",backgroundRepeat:"no-repeat"}}>
-      
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/30 z-0" />
+    <main className="relative min-h-[100dvh] w-full flex items-center justify-center p-4 overflow-hidden py-12">
+      <div className="fixed inset-0 -z-20" style={{ backgroundImage: "url('" + (bgUrl || '/auth-bg.jpg') + "')", backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />
+      <div className="fixed inset-0 bg-black/30 -z-10" />
 
       {/* Glassmorphic Card Container */}
       <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] rounded-[32px] p-7 sm:p-10 flex flex-col my-6" style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.35)",boxShadow:"0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.4)"}}>
@@ -186,3 +185,6 @@ export function RegisterClient({ bgUrl }: { bgUrl?: string }) {
     </main>
   );
 }
+
+
+

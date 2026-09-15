@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { loginAction } from "@/app/actions/auth";
@@ -27,25 +27,13 @@ export default function LoginClient({ bgUrl }: { bgUrl: string }) {
   }
 
   return (
-    <main
-      className="min-h-screen w-full flex items-center justify-center p-4 overflow-hidden"
-      style={{
-        backgroundImage: `url(${bgUrl})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center top",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* Subtle dark overlay so text is readable */}
-      <div className="absolute inset-0 bg-black/30" />
+    <main className="relative min-h-[100dvh] w-full flex items-center justify-center p-4 overflow-hidden">
+      <div className="fixed inset-0 -z-20" style={{ backgroundImage: `url(${bgUrl})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />
+      <div className="fixed inset-0 bg-black/30 -z-10" />
 
       {/* Glass Card - transparent like real glass, no blur */}
       <div className="relative z-10 w-full max-w-[390px] sm:max-w-[430px] rounded-[32px] p-7 sm:p-10 flex flex-col my-8"
-        style={{
-          background: "rgba(255,255,255,0.08)",
-          border: "1px solid rgba(255,255,255,0.35)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.4)",
-        }}
+
       >
         {/* Header Logo */}
         <div className="flex flex-col items-center mb-6 mt-2">
@@ -69,10 +57,7 @@ export default function LoginClient({ bgUrl }: { bgUrl: string }) {
               type="email"
               required
               className="w-full rounded-2xl px-4 py-3.5 text-white text-sm outline-none transition-all"
-              style={{
-                background: "rgba(255,255,255,0.12)",
-                border: "1px solid rgba(255,255,255,0.3)",
-              }}
+      
               onFocus={e => { e.target.style.background = "rgba(255,255,255,0.2)"; e.target.style.borderColor = "#C77DFF"; }}
               onBlur={e => { e.target.style.background = "rgba(255,255,255,0.12)"; e.target.style.borderColor = "rgba(255,255,255,0.3)"; }}
               placeholder=""
@@ -86,10 +71,7 @@ export default function LoginClient({ bgUrl }: { bgUrl: string }) {
               type="password"
               required
               className="w-full rounded-2xl px-4 py-3.5 text-white text-sm outline-none transition-all"
-              style={{
-                background: "rgba(255,255,255,0.12)",
-                border: "1px solid rgba(255,255,255,0.3)",
-              }}
+      
               onFocus={e => { e.target.style.background = "rgba(255,255,255,0.2)"; e.target.style.borderColor = "#C77DFF"; }}
               onBlur={e => { e.target.style.background = "rgba(255,255,255,0.12)"; e.target.style.borderColor = "rgba(255,255,255,0.3)"; }}
               placeholder=""
@@ -125,3 +107,6 @@ export default function LoginClient({ bgUrl }: { bgUrl: string }) {
     </main>
   );
 }
+
+
+
