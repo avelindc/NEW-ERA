@@ -518,27 +518,12 @@ export default async function LandingPage() {
             </div>
 
             <div>
-            <div>
               <h4 className="font-display text-lg text-white mb-4 tracking-wider">CONTACT</h4>
-              {cms.contact?.isActive !== false && (
-                <ul className="space-y-2 text-xs text-gray-400">
-                  {cms.contact?.email && <li>Email: {cms.contact.email}</li>}
-                  {cms.contact?.whatsapp && (
-                    <li>
-                      WhatsApp:{" "}
-                      <a
-                        href={`https://wa.me/${cms.contact.whatsapp.replace(/[^0-9]/g, "")}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:text-[#D4FF00] transition"
-                      >
-                        {cms.contact.whatsapp}
-                      </a>
-                    </li>
-                  )}
-                  {cms.contact?.address && <li>{cms.contact.address}</li>}
-                </ul>
-              )}
+              <ul className="space-y-2 text-xs text-gray-400">
+                <li>Email: breakoutnewera.business@gmail.com</li>
+                <li>WhatsApp: <a href="https://wa.me/6281330923740" target="_blank" rel="noreferrer" className="hover:text-[#D4FF00] transition">+6281330923740</a></li>
+                <li>Pati, Jawa Tengah, Indonesia</li>
+              </ul>
             </div>
           </div>
 
