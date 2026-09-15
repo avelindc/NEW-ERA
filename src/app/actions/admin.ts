@@ -41,6 +41,9 @@ export async function updateArtistStatusAction(
     revalidatePath("/admin/artists");
     return { success: true };
   } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+} catch (error: any) {
     return { error: error.message || "Failed to update status" };
   }
 }
@@ -56,6 +59,9 @@ export async function resetUserPassword(userId: string, newPassword: string) {
     
     return { success: true };
   } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+} catch (error: any) {
     return { error: error.message || "Failed to reset password" };
   }
 }
@@ -75,6 +81,9 @@ export async function deleteUserAction(userId: string) {
     revalidatePath("/admin/registrations");
     return { success: true };
   } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+} catch (error: any) {
     return { error: error.message || "Failed to delete user" };
   }
 }
@@ -88,6 +97,7 @@ export async function updateReleaseStatusAction(
   title: string,
   reason: string = ""
 ) {
+  try {
   const updatedRelease = await prisma.release.update({
     where: { id: releaseId },
     data: { status }
@@ -113,6 +123,10 @@ export async function updateReleaseStatusAction(
 
   revalidatePath("/admin/releases");
   revalidatePath("/dashboard/releases");
+  return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 export async function resetArtistDataAction(artistId: string) {
@@ -122,6 +136,9 @@ export async function resetArtistDataAction(artistId: string) {
     revalidatePath('/admin/analytics');
     return { success: true };
   } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+} catch (error: any) {
     return { error: error.message || 'Failed to reset artist data' };
   }
 }
@@ -134,6 +151,9 @@ export async function deleteExistingReleaseAction(releaseId: string) {
     revalidatePath("/admin/existing-releases");
     return { success: true };
   } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+} catch (error: any) {
     return { error: error.message || "Failed to delete release" };
   }
 }

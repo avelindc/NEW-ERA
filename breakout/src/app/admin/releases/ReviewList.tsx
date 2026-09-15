@@ -87,7 +87,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
   const [selected, setSelected] = useState<ReviewItem | null>(null);
   const [filter, setFilter] = useState<string>("ALL");
   const [search, setSearch] = useState<string>("");
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   // Audio Player State
   const [currentTrack, setCurrentTrack] = useState<{
@@ -199,7 +199,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
     try {
       const releaseToUpdate = releases.find(r => r.id === id);
       if (!releaseToUpdate) return;
-      setIsUpdating(true);
+      setUpdatingStatus(newStatus);
       const res = await updateReleaseStatusAction(
         id,
         releaseToUpdate.user.id,
@@ -219,7 +219,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
     } catch (err: any) {
       alert("Terjadi kesalahan: " + err.message);
     } finally {
-      setIsUpdating(false);
+      /* set(updatingStatus !== null)(false); */
     }
   };
 
@@ -593,21 +593,21 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  disabled={isUpdating || selected.status === "APPROVED"}
+                  disabled={(updatingStatus !== null) || selected.status === "APPROVED"}
                   onClick={() => handleStatusChange(selected.id, "APPROVED")}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl disabled:opacity-50 transition-all shadow-sm"
                 >
                   Approve
                 </button>
                 <button
-                  disabled={isUpdating || selected.status === "PROCESSING"}
+                  disabled={(updatingStatus !== null) || selected.status === "PROCESSING"}
                   onClick={() => handleStatusChange(selected.id, "PROCESSING")}
                   className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl disabled:opacity-50 transition-all shadow-sm"
                 >
                   Processing
                 </button>
                 <button
-                  disabled={isUpdating || selected.status === "REJECTED"}
+                  disabled={(updatingStatus !== null) || selected.status === "REJECTED"}
                   onClick={() => handleStatusChange(selected.id, "REJECTED")}
                   className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl disabled:opacity-50 transition-all shadow-sm"
                 >
