@@ -13,9 +13,8 @@ export const r2Client = new S3Client({
     accessKeyId: (process.env.R2_ACCESS_KEY_ID || DEFAULT_R2_ACCESS_KEY).trim(),
     secretAccessKey: (process.env.R2_SECRET_ACCESS_KEY || DEFAULT_R2_SECRET_KEY).trim(),
   },
-  // FIXED: Disable problematic checksum features that cause CORS issues with R2
-  requestChecksumCalculation: "WHEN_SUPPORTED", // More lenient than WHEN_REQUIRED
-  responseChecksumValidation: "WHEN_SUPPORTED", // More lenient than WHEN_REQUIRED
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
   
   // Additional R2-specific optimizations
   maxAttempts: 3,
