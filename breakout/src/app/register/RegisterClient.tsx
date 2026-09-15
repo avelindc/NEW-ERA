@@ -45,17 +45,13 @@ export function RegisterClient() {
   }
 
   return (
-    <main className="min-h-screen w-full relative flex items-center justify-center p-4 overflow-hidden py-12">
+    <main className="min-h-screen w-full flex items-center justify-center p-4 overflow-hidden py-12" style={{backgroundImage:"url('/auth-bg.jpg')",backgroundSize:"cover",backgroundPosition:"center top",backgroundRepeat:"no-repeat"}}>
       
-      {/* Full-screen background photo */}
-      <div className="absolute inset-0 z-0">
-        <img src="/auth-bg.jpg" alt="Background" className="w-full h-full object-cover object-center" />
-        <div className="absolute inset-0 bg-black/55" />
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-black/40" />
-      </div>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/30 z-0" />
 
       {/* Glassmorphic Card Container */}
-      <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] rounded-[38px] p-7 sm:p-10 backdrop-blur-2xl bg-white/10 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),inset_0_1px_1px_rgba(255,255,255,0.3)] flex flex-col my-6">
+      <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] rounded-[32px] p-7 sm:p-10 flex flex-col my-6" style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.35)",boxShadow:"0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.4)"}}>
         
         {/* Header Logo */}
         <div className="flex flex-col items-center mb-6">
