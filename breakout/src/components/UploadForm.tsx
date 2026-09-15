@@ -157,10 +157,9 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           console.log("[UploadForm] Uploading cover directly to Cloudflare R2...");
           const coverFormData = new FormData();
           coverFormData.append("file", coverFile);
-          coverFormData.append("folder", "covers");
-          coverFormData.append("filename", coverFilename);
+          coverFormData.append("type", "cover");
 
-          const coverRes = await fetch("https://upload.breakoutmusic.online", {
+          const coverRes = await fetch("/api/upload", {
             method: "POST",
             body: coverFormData,
           });
@@ -174,10 +173,9 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           console.log("[UploadForm] Uploading audio directly to Cloudflare R2...");
           const audioFormData = new FormData();
           audioFormData.append("file", audioFile);
-          audioFormData.append("folder", "audio");
-          audioFormData.append("filename", audioFilename);
+          audioFormData.append("type", "audio");
 
-          const audioRes = await fetch("https://upload.breakoutmusic.online", {
+          const audioRes = await fetch("/api/upload", {
             method: "POST",
             body: audioFormData,
           });

@@ -50,28 +50,16 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
       const uploadFormData = new FormData();
       uploadFormData.append("file", file);
       
-      let imageUrl = "";
-      try {
-        const workerRes = await fetch("https://upload.breakoutmusic.online", {
-          method: "POST",
-          body: uploadFormData
-        });
-        const workerData = await workerRes.json();
-        if (workerData.success && workerData.url) {
-          imageUrl = workerData.url;
-        }
-      } catch (workerErr) {
-        console.warn("Direct worker upload fallback:", workerErr);
-      }
-
-      // 2. Fallback to Server Action if needed
-      if (!imageUrl) {
-        const res = await uploadCMSImageAction(uploadFormData);
-        if (res.error) throw new Error(res.error);
-        imageUrl = res.url || "";
-      }
+      const res = await uploadCMSImageAction(uploadFormData);
+      if (res.error) throw new Error(res.error);
+      const imageUrl = res.url || "";
 
       setUploadingField(null);
+
+      if (path.length > 0 && imageUrl) {
+        updateNestedField(path, imageUrl);
+      }
+      return imageUrl;
 
       if (path.length > 0 && imageUrl) {
         updateNestedField(path, imageUrl);

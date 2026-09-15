@@ -96,7 +96,8 @@ export function ImportReleaseForm() {
       
       const uploadForm = new FormData();
       uploadForm.append("file", coverFile);
-      const uploadRes = await fetch("https://upload.breakoutmusic.online", {
+      uploadForm.append("type", "cover");
+      const uploadRes = await fetch("/api/upload", {
         method: "POST",
         body: uploadForm
       });
