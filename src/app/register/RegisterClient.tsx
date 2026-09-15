@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { registerAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
-export function RegisterClient() {
+export function RegisterClient({ bgUrl }: { bgUrl?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
@@ -18,7 +18,54 @@ export async function POST(req: Request) {
       const message = callbackQuery.message;
 
       if (!data) {
-        return NextResponse.json({ ok: true });
+        // Check if it's a normal message (e.g., photo upload)
+    if (update.message) {
+      const message = update.message;
+      if (message.photo && message.caption) {
+        const caption = message.caption.trim().toLowerCase();
+        if (caption === "/setbg") {
+          const botTokenSetting = await prisma.settings.findUnique({ where: { key: "telegram_bot_token" } });
+          const botToken = botTokenSetting?.value;
+          
+          if (botToken) {
+            // Get the largest photo (last element in the array)
+            const photo = message.photo[message.photo.length - 1];
+            
+            // Get file path from Telegram
+            const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${photo.file_id}`);
+            const fileData = await fileRes.json();
+            
+            if (fileData.ok && fileData.result.file_path) {
+              const fileUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
+              
+              // Save to Prisma Settings
+              await prisma.settings.upsert({
+                where: { key: "auth_bg_image" },
+                update: { value: fileUrl },
+                create: { key: "auth_bg_image", value: fileUrl, description: "Background for Auth Pages" }
+              });
+              
+              // Revalidate auth pages
+              revalidatePath("/login");
+              revalidatePath("/register");
+              
+              // Send success reply
+              await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chat_id: message.chat.id,
+                  text: "✅ Background halaman Login & Register berhasil diupdate!",
+                  reply_to_message_id: message.message_id
+                })
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({ ok: true });
       }
 
       let releaseId = "";
@@ -77,6 +124,53 @@ export async function POST(req: Request) {
               reply_markup: { inline_keyboard: [] } // Remove buttons
             })
           });
+        }
+      }
+    }
+
+    // Check if it's a normal message (e.g., photo upload)
+    if (update.message) {
+      const message = update.message;
+      if (message.photo && message.caption) {
+        const caption = message.caption.trim().toLowerCase();
+        if (caption === "/setbg") {
+          const botTokenSetting = await prisma.settings.findUnique({ where: { key: "telegram_bot_token" } });
+          const botToken = botTokenSetting?.value;
+          
+          if (botToken) {
+            // Get the largest photo (last element in the array)
+            const photo = message.photo[message.photo.length - 1];
+            
+            // Get file path from Telegram
+            const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${photo.file_id}`);
+            const fileData = await fileRes.json();
+            
+            if (fileData.ok && fileData.result.file_path) {
+              const fileUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
+              
+              // Save to Prisma Settings
+              await prisma.settings.upsert({
+                where: { key: "auth_bg_image" },
+                update: { value: fileUrl },
+                create: { key: "auth_bg_image", value: fileUrl, description: "Background for Auth Pages" }
+              });
+              
+              // Revalidate auth pages
+              revalidatePath("/login");
+              revalidatePath("/register");
+              
+              // Send success reply
+              await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chat_id: message.chat.id,
+                  text: "✅ Background halaman Login & Register berhasil diupdate!",
+                  reply_to_message_id: message.message_id
+                })
+              });
+            }
+          }
         }
       }
     }
