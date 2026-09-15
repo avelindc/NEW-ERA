@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { registerAction } from "@/app/actions/auth";
 import Link from "next/link";
-import { AuroraBackground } from "@/components/AuroraBackground";
 import { Loader2 } from "lucide-react";
-import Image from "next/image";
 
 export function RegisterClient() {
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +25,6 @@ export function RegisterClient() {
     }
 
     try {
-      // 15 second timeout to prevent infinite loading
       const timeoutPromise = new Promise<{error: string}>((resolve) =>
         setTimeout(() => resolve({ error: "Pendaftaran timeout. Silakan coba lagi." }), 15000)
       );
@@ -38,7 +35,6 @@ export function RegisterClient() {
         setError(res.error);
         setLoading(false);
       } else {
-        // Navigate to success page without refresh
         window.location.href = `/register/success?name=${encodeURIComponent(formData.get("name") as string)}&email=${encodeURIComponent(formData.get("email") as string)}&whatsapp=${encodeURIComponent(formData.get("whatsapp") as string)}`;
       }
     } catch (err) {
@@ -49,138 +45,157 @@ export function RegisterClient() {
   }
 
   return (
-    <main className="min-h-screen bg-[#09090B] text-white flex items-center justify-center p-6">
-      <AuroraBackground>
-        <div className="w-full max-w-md glass-card p-8 rounded-2xl animate-fade-in relative z-10 my-10">
-          
-          <div className="flex flex-col items-center mb-8">
-                <div className="w-24 h-24 mb-4 relative">
-                  <Image src="/logo.png" alt="Break Out Logo" fill className="object-contain" priority />
-                </div>
-                <h1 className="text-2xl font-bold">Create Account</h1>
-                <p className="text-gray-400 text-sm mt-2">Start distributing your music</p>
-              </div>
+    <main className="min-h-screen w-full relative flex items-center justify-center p-4 bg-[#080214] overflow-hidden py-12">
+      
+      {/* 3D Purple Fluid Silk Ambient Glow & Mesh Waves */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-[20%] -left-[15%] w-[80vw] h-[80vw] max-w-[900px] max-h-[900px] rounded-full bg-gradient-to-br from-[#7209B7]/40 via-[#560BAD]/25 to-transparent blur-[120px] transform -rotate-12" />
+        <div className="absolute top-[20%] -right-[15%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] rounded-full bg-gradient-to-bl from-[#B5179E]/35 via-[#7209B7]/30 to-transparent blur-[110px]" />
+        <div className="absolute -bottom-[25%] left-[10%] w-[90vw] h-[70vw] max-w-[1000px] rounded-full bg-gradient-to-t from-[#480CA8]/40 via-[#3F37C9]/20 to-transparent blur-[130px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/15 via-[#080214]/60 to-[#080214]/95" />
+      </div>
 
-              {error && (
-                <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm text-center">
-                  {error}
-                </div>
-              )}
+      {/* Glassmorphic Card Container */}
+      <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] rounded-[38px] p-7 sm:p-10 backdrop-blur-2xl bg-white/[0.04] border border-white/20 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.25)] flex flex-col my-6">
+        
+        {/* Header Logo */}
+        <div className="flex flex-col items-center mb-6">
+          <div className="relative w-14 h-12 flex items-center justify-center my-1">
+            <div className="w-9 h-3.5 bg-gradient-to-r from-[#9D4EDD] to-[#C77DFF] rounded-full transform -rotate-45 shadow-[0_0_18px_rgba(199,125,255,0.6)] -translate-y-1.5 -translate-x-1" />
+            <div className="w-9 h-3.5 bg-gradient-to-r from-[#7B2CBF] to-[#9D4EDD] rounded-full transform -rotate-45 shadow-[0_0_18px_rgba(157,78,221,0.6)] translate-y-1.5 translate-x-1" />
+          </div>
 
-              <form onSubmit={handleInitialSubmit} className="flex flex-col gap-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Nama Lengkap (sesuai KTP)</label>
-                  <input 
-                    name="name" 
-                    type="text" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500" 
-                    placeholder="John Doe"
-                  />
-                </div>
+          <span className="font-extrabold text-white text-base tracking-[0.28em] uppercase mt-2">
+            BMR
+          </span>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Email</label>
-                  <input 
-                    name="email" 
-                    type="email" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500" 
-                    placeholder="you@example.com"
-                  />
-                </div>
-                
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Alamat Lengkap (Sesuai KTP)</label>
-                  <textarea 
-                    name="address" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500 resize-none h-24" 
-                    placeholder="Jl. Contoh No. 123..."
-                  ></textarea>
-                </div>
-                
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Nomor WhatsApp</label>
-                  <input 
-                    name="whatsapp" 
-                    type="tel" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition text-white placeholder-gray-500" 
-                    placeholder="081234567890"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Link YouTube Artis</label>
-                  <input 
-                    name="youtubeUrl" 
-                    type="url" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500" 
-                    placeholder="https://youtube.com/@artist"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Password</label>
-                  <input 
-                    name="password" 
-                    type="password" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#00F0FF] transition text-white placeholder-gray-500" 
-                    placeholder="••••••••"
-                    minLength={8}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-300">Konfirmasi Password</label>
-                  <input 
-                    name="confirmPassword" 
-                    type="password" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 outline-none focus:border-[#7000FF] transition text-white placeholder-gray-500" 
-                    placeholder="••••••••"
-                    minLength={8}
-                  />
-                </div>
-
-
-                <div className="flex items-start gap-3 mt-2">
-                  <div className="flex items-center h-5">
-                    <input 
-                      id="consent" 
-                      name="consent" 
-                      type="checkbox" 
-                      required 
-                      className="w-4 h-4 rounded border-gray-600 text-[#00F0FF] bg-white/5 focus:ring-[#00F0FF] focus:ring-offset-gray-900" 
-                    />
-                  </div>
-                  <label htmlFor="consent" className="text-sm text-gray-300 leading-tight cursor-pointer">
-                    Saya menyatakan bahwa seluruh data yang saya kirim adalah benar dan sesuai identitas asli saya.
-                  </label>
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="mt-4 w-full bg-gradient-to-r from-[#7000FF] to-[#0047FF] hover:opacity-90 transition text-white font-semibold py-3 rounded-lg flex justify-center items-center gap-2 shadow-lg shadow-[#7000FF]/25"
-                >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Daftar"}
-                </button>
-              </form>
-
-              <p className="mt-8 text-center text-sm text-gray-400">
-                Already have an account?{" "}
-                <Link href="/login" className="text-[#00F0FF] hover:underline">
-                  Log in
-                </Link>
-              </p>
-
+          <h1 className="text-xl sm:text-2xl font-bold text-white/95 mt-3 text-center tracking-tight">
+            Create Account, Breakout
+          </h1>
         </div>
-      </AuroraBackground>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-5 p-3 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-medium text-center">
+            {error}
+          </div>
+        )}
+
+        {/* Register Form */}
+        <form onSubmit={handleInitialSubmit} className="flex flex-col gap-4">
+          
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-300 ml-1">Full Name (sesuai KTP)</label>
+            <input 
+              name="name" 
+              type="text" 
+              required
+              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              placeholder="John Doe"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-300 ml-1">Email address</label>
+            <input 
+              name="email" 
+              type="email" 
+              required
+              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              placeholder="you@example.com"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-300 ml-1">Nomor WhatsApp</label>
+            <input 
+              name="whatsapp" 
+              type="tel" 
+              required
+              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              placeholder="081234567890"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-300 ml-1">Link YouTube Artis</label>
+            <input 
+              name="youtubeUrl" 
+              type="url" 
+              required
+              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              placeholder="https://youtube.com/@artist"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-300 ml-1">Alamat Lengkap (Sesuai KTP)</label>
+            <textarea 
+              name="address" 
+              required
+              rows={2}
+              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all resize-none" 
+              placeholder="Jl. Contoh No. 123..."
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-300 ml-1">Password</label>
+            <input 
+              name="password" 
+              type="password" 
+              required
+              minLength={8}
+              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              placeholder="Minimal 8 karakter"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-gray-300 ml-1">Konfirmasi Password</label>
+            <input 
+              name="confirmPassword" 
+              type="password" 
+              required
+              minLength={8}
+              className="w-full bg-white/[0.04] border border-white/25 rounded-2xl px-4 py-3.5 text-white placeholder-gray-500 text-sm outline-none focus:border-[#C77DFF] focus:ring-2 focus:ring-[#C77DFF]/30 transition-all" 
+              placeholder="Ulangi password"
+            />
+          </div>
+
+          <div className="flex items-start gap-3 mt-1">
+            <input 
+              id="consent" 
+              name="consent" 
+              type="checkbox" 
+              required 
+              className="w-4 h-4 mt-0.5 rounded border-gray-600 text-[#9D4EDD] bg-white/5 focus:ring-[#9D4EDD]" 
+            />
+            <label htmlFor="consent" className="text-xs text-gray-300 leading-tight cursor-pointer">
+              Saya menyatakan bahwa seluruh data yang saya kirim adalah benar dan sesuai identitas asli saya.
+            </label>
+          </div>
+
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="mt-3 w-full bg-gradient-to-b from-[#A370F7] via-[#8B44F7] to-[#7322EA] hover:from-[#B184F9] hover:to-[#7E33ED] text-white font-bold text-base py-3.5 rounded-2xl shadow-[0_10px_30px_rgba(139,68,247,0.45),inset_0_1px_1px_rgba(255,255,255,0.4)] border border-white/25 transition-all active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign Up"}
+          </button>
+        </form>
+
+        {/* Footer Link */}
+        <div className="mt-8 text-center text-xs text-gray-300">
+          Already Have an Account ?{" "}
+          <Link href="/login" className="font-extrabold text-white hover:text-[#C77DFF] transition ml-1">
+            Log In
+          </Link>
+        </div>
+
+      </div>
+
     </main>
   );
 }
