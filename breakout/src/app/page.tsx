@@ -58,18 +58,18 @@ export default async function LandingPage() {
   const STAGE_IMG = "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1200&auto=format&fit=crop";
 
   return (
-    <main className="min-h-screen bg-[#07040E] text-white selection:bg-[#D4FF00] selection:text-black py-4 sm:py-8 px-2 sm:px-4">
+    <main className="min-h-screen bg-[#0E091B] text-white selection:bg-[#D4FF00] selection:text-black w-full overflow-x-hidden">
       
-      {/* Editorial Frame Container */}
-      <div className="editorial-frame relative">
+      {/* Editorial Full-Bleed Container */}
+      <div className="w-full relative">
         
         {/* Navigation */}
         <Navbar cms={cms} />
 
         {/* ========================================================================= */}
-        {/* HERO SECTION (Grand Display + Sunset Atmosphere) */}
+        {/* HERO SECTION (Grand Display + Sunset Atmosphere - Full Width) */}
         {/* ========================================================================= */}
-        <section className="relative min-h-[85vh] lg:min-h-[92vh] flex flex-col justify-between p-6 sm:p-12 lg:p-16 rounded-[36px] overflow-hidden m-2 sm:m-4 bg-gradient-to-b from-purple-950/40 via-purple-900/20 to-[#0E091B]">
+        <section className="relative min-h-[88vh] lg:min-h-[92vh] flex flex-col justify-between px-4 py-8 sm:px-10 sm:py-12 lg:px-16 lg:py-14 w-full overflow-hidden bg-gradient-to-b from-purple-950/40 via-purple-900/20 to-[#0E091B] border-b border-white/10">
           
           {/* Hero Background Image with Rich Color Grade */}
           <div className="absolute inset-0 z-0 pointer-events-none">
@@ -85,7 +85,7 @@ export default async function LandingPage() {
           </div>
 
           {/* Top Label */}
-          <div className="relative z-10">
+          <div className="relative z-10 max-w-7xl mx-auto w-full">
             <AnimatedSection>
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[#D4FF00] text-xs font-black tracking-widest uppercase mb-4">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -95,7 +95,7 @@ export default async function LandingPage() {
           </div>
 
           {/* Center Main Headlines */}
-          <div className="relative z-10 max-w-4xl my-auto pt-8 pb-12">
+          <div className="relative z-10 max-w-7xl mx-auto w-full my-auto pt-6 pb-10">
             <AnimatedSection delay={0.1}>
               <h1 className="font-display text-6xl sm:text-8xl lg:text-9xl tracking-tight text-white uppercase leading-[0.88] drop-shadow-2xl">
                 {cms.hero.title1 || "YOUR MUSIC"}
@@ -135,7 +135,7 @@ export default async function LandingPage() {
           </div>
 
           {/* Hero Bottom Stats Bar */}
-          <div className="relative z-10 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6 items-center">
+          <div className="relative z-10 max-w-7xl mx-auto w-full pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6 items-center">
             <div>
               <div className="font-display text-3xl sm:text-4xl text-white">150+</div>
               <div className="text-[11px] font-extrabold uppercase tracking-widest text-[#D4FF00]">DSP Stores Worldwide</div>
@@ -157,12 +157,13 @@ export default async function LandingPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION 2: THREE ASYMMETRIC VISUAL CARDS (Row 2 in Reference) */}
         {/* ========================================================================= */}
-        <section id="distribution" className="p-4 sm:p-8">
+        {/* SECTION 2: THREE ASYMMETRIC VISUAL CARDS */}
+        {/* ========================================================================= */}
+        <section id="distribution" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
-            {/* Card 1: Distribute Everywhere (Image Card + Overlay + Lime Arrow) */}
+            {/* Card 1: Distribute Everywhere */}
             <div className="lg:col-span-4 relative rounded-[32px] overflow-hidden min-h-[340px] p-8 flex flex-col justify-between group border border-white/10 shadow-2xl">
               <img 
                 src={CARD_BG_1} 
@@ -185,7 +186,7 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* Card 2: Keep Your Royalties (Clean Crisp White Card + Lime Button) */}
+            {/* Card 2: Keep Your Royalties */}
             <div className="lg:col-span-4 rounded-[32px] bg-white text-black p-8 sm:p-10 flex flex-col justify-between shadow-2xl">
               <div>
                 <h3 className="font-display text-3xl sm:text-4xl uppercase tracking-tight text-gray-950 leading-tight">
@@ -201,7 +202,7 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* Card 3: Stay In Control (Purple/Violet Gradient Card + Lime Arrow) */}
+            {/* Card 3: Stay In Control */}
             <div className="lg:col-span-4 relative rounded-[32px] overflow-hidden min-h-[340px] p-8 flex flex-col justify-between group border border-white/10 sunset-card-gradient shadow-2xl">
               <img 
                 src={CARD_BG_3} 
@@ -227,9 +228,9 @@ export default async function LandingPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION 3: ABOUT BREAKOUT (Asymmetric Split - Row 3 in Reference) */}
+        {/* SECTION 3: ABOUT BREAKOUT */}
         {/* ========================================================================= */}
-        <section id="about" className="p-4 sm:p-8">
+        <section id="about" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
             {/* Left Column: Editorial About Text */}
@@ -284,10 +285,10 @@ export default async function LandingPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION 4: WHY YOU'LL LOVE IT (Row 4 in Reference) */}
+        {/* SECTION 4: WHY YOU'LL LOVE IT */}
         {/* ========================================================================= */}
-        <section id="features" className="p-4 sm:p-8">
-          <div className="mb-6 px-2">
+        <section id="features" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+          <div className="mb-8">
             <h2 className="font-display text-4xl sm:text-5xl uppercase tracking-tight text-white">
               WHY YOU'LL LOVE IT
             </h2>
@@ -372,8 +373,8 @@ export default async function LandingPage() {
         {/* SECTION 5: WHAT ARTISTS SAY (Testimonials) */}
         {/* ========================================================================= */}
         {cms.testimonials && cms.testimonials.length > 0 && (
-          <section className="p-4 sm:p-8">
-            <div className="mb-6 px-2 flex justify-between items-end">
+          <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+            <div className="mb-8 flex justify-between items-end">
               <div>
                 <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-1">REAL FEEDBACK</span>
                 <h2 className="font-display text-4xl sm:text-5xl uppercase tracking-tight text-white">WHAT ARTISTS SAY</h2>
@@ -414,8 +415,8 @@ export default async function LandingPage() {
         {/* SECTION 6: FEATURED RELEASES (Catalog Grid) */}
         {/* ========================================================================= */}
         {cms.featuredReleases && cms.featuredReleases.length > 0 && (
-          <section id="releases" className="p-4 sm:p-8">
-            <div className="mb-6 px-2 flex justify-between items-end">
+          <section id="releases" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+            <div className="mb-8 flex justify-between items-end">
               <div>
                 <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-1">CATALOG HIGHLIGHTS</span>
                 <h2 className="font-display text-4xl sm:text-5xl uppercase tracking-tight text-white">LATEST RELEASES</h2>
@@ -434,10 +435,10 @@ export default async function LandingPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* SECTION 7: PRICING SECTION (Simple. Transparent.) */}
+        {/* SECTION 7: PRICING SECTION */}
         {/* ========================================================================= */}
-        <section id="pricing" className="p-4 sm:p-8">
-          <div className="text-center max-w-2xl mx-auto mb-10">
+        <section id="pricing" className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+          <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-[11px] font-black uppercase tracking-widest text-[#D4FF00] block mb-2">PLANS & PRICING</span>
             <h2 className="font-display text-4xl sm:text-6xl uppercase tracking-tight text-white leading-none">
               SIMPLE. TRANSPARENT.<br />BUILT FOR ARTISTS.
@@ -468,7 +469,7 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* Pro Plan (Highlighted Neon Tier) */}
+            {/* Pro Plan */}
             <div className="rounded-[32px] bg-white text-black p-8 flex flex-col justify-between shadow-2xl relative ring-4 ring-[#D4FF00]">
               <div className="absolute -top-3.5 right-8 px-4 py-1 rounded-full bg-[#D4FF00] text-black font-black text-[10px] tracking-widest uppercase shadow-md">
                 RECOMMENDED
@@ -520,14 +521,14 @@ export default async function LandingPage() {
         {/* ========================================================================= */}
         {/* SECTION 8: FAQ ACCORDION */}
         {/* ========================================================================= */}
-        <section className="p-4 sm:p-8">
+        <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <FAQSection section={cms.faqSection} groups={cms.faqGroups} />
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION 9: FINAL CTA BANNER (Row 5 in Reference) */}
+        {/* SECTION 9: FINAL CTA BANNER */}
         {/* ========================================================================= */}
-        <section className="p-4 sm:p-8">
+        <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <div className="relative rounded-[36px] overflow-hidden p-8 sm:p-14 sunset-card-gradient border border-white/15 flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
             
             {/* Big Watermark Typography */}
@@ -553,9 +554,9 @@ export default async function LandingPage() {
         </section>
 
         {/* ========================================================================= */}
-        {/* SECTION 10: OUR PARTNERS & PLATFORM BADGES (Footer Platform Logos) */}
+        {/* SECTION 10: OUR PARTNERS & PLATFORM BADGES */}
         {/* ========================================================================= */}
-        <section id="partners" className="py-8 px-6 border-t border-white/10 bg-[#0B0616]">
+        <section id="partners" className="py-12 px-4 sm:px-8 border-t border-white/10 bg-[#0B0616] w-full">
           <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-75">
             <span className="font-display text-2xl text-white tracking-wider flex items-center gap-2">
               <Headphones className="w-5 h-5 text-[#1DB954]" /> SPOTIFY
@@ -578,7 +579,7 @@ export default async function LandingPage() {
         {/* ========================================================================= */}
         {/* FOOTER */}
         {/* ========================================================================= */}
-        <footer id="contact" className="p-8 sm:p-12 bg-[#080410] border-t border-white/5">
+        <footer id="contact" className="py-12 px-4 sm:px-8 lg:px-12 bg-[#080410] border-t border-white/5 w-full">
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
             <div className="md:col-span-2">
               <span className="font-display text-3xl text-white tracking-wider">

@@ -102,15 +102,19 @@ export function Navbar({ cms }: { cms: any }) {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
+      setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 w-full px-4 sm:px-8 pt-4 pb-2 transition-all duration-300">
-      <nav className={`max-w-7xl mx-auto px-5 sm:px-7 py-3 rounded-full transition-all duration-300 flex items-center justify-between ${scrolled ? 'bg-[#150D27]/90 backdrop-blur-xl border border-white/10 shadow-[0_10px_35px_rgba(0,0,0,0.5)]' : 'bg-transparent'}`}>
+    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      scrolled 
+        ? 'bg-[#0E091B]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_35px_rgba(0,0,0,0.5)]' 
+        : 'bg-[#0E091B]/70 backdrop-blur-md border-b border-white/5'
+    }`}>
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
         
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-3 group">
@@ -127,8 +131,8 @@ export function Navbar({ cms }: { cms: any }) {
           <Link href="#distribution" className="hover:text-[#D4FF00] transition-colors">DISTRIBUTION</Link>
           <Link href="#features" className="hover:text-[#D4FF00] transition-colors">WHY US</Link>
           <Link href="#pricing" className="hover:text-[#D4FF00] transition-colors">PRICING</Link>
-          <Link href="#artists" className="hover:text-[#D4FF00] transition-colors">ARTISTS</Link>
-          <Link href="#partners" className="hover:text-[#D4FF00] transition-colors">OUR PARTNERS</Link>
+          <Link href="#releases" className="hover:text-[#D4FF00] transition-colors">CATALOG</Link>
+          <Link href="#partners" className="hover:text-[#D4FF00] transition-colors">PARTNERS</Link>
           <Link href="#contact" className="hover:text-[#D4FF00] transition-colors">CONTACT</Link>
         </div>
         
