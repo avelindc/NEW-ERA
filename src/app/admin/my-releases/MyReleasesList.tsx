@@ -1,5 +1,26 @@
 "use client";
 
+const FALLBACK_VINYL = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="8" fill="%230f172a"/><circle cx="40" cy="40" r="30" fill="%231e293b" stroke="%23334155" stroke-width="2"/><circle cx="40" cy="40" r="20" fill="%230f172a"/><circle cx="40" cy="40" r="10" fill="%23e11d48"/><circle cx="40" cy="40" r="3" fill="%23ffffff"/></svg>`;
+
+function resolveMediaUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  if (url.startsWith("/api/media/")) return url;
+  if (url.startsWith("/")) return url;
+  if (
+    url.includes("breakoutmusicrecord.com") ||
+    url.includes("breakoutmusic.online") ||
+    url.includes("r2.cloudflarestorage.com")
+  ) {
+    try {
+      const u = new URL(url);
+      return `/api/media${u.pathname}`;
+    } catch {
+      return `/api/media/${url.replace(/^https?:\/\/[^\/]+\//, "")}`;
+    }
+  }
+  return url;
+}
+
 import React, { useState } from "react";
 import { 
   X, Eye, Edit2, Play, Pause, CheckCircle2, ShieldAlert, Tag, 
@@ -377,7 +398,7 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
                       <td className="p-3.5 md:p-4 text-center" onClick={(e) => e.stopPropagation()}>
                         <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mx-auto group/thumb shadow-sm">
                           <img 
-                            src={rel.coverArtworkUrl} 
+                            src={resolveMediaUrl(rel.coverArtworkUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_VINYL; }} 
                             alt={rel.title}
                             loading="lazy"
                             className="w-full h-full object-cover"
@@ -644,7 +665,7 @@ export function MyReleasesList({ releases }: { releases: Release[] }) {
 
               <div className="flex gap-5 items-center">
                 <div className="relative w-20 h-20 rounded-2xl bg-white/10 overflow-hidden shadow-lg border border-white/15 group/cover">
-                  <img src={selected.coverArtworkUrl} alt="Cover" className="w-full h-full object-cover" />
+                  <img src={resolveMediaUrl(selected.coverArtworkUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_VINYL; }} alt="Cover" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
                     <button 
                       onClick={(e) => handleDownload(selected.coverArtworkUrl, `${selected.title} - Cover.jpg`, 'cover', e)} 

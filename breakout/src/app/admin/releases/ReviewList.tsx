@@ -2,67 +2,105 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { 
-  X, Eye, Play, Pause, Check, Download, Clock, 
-  Tag, Compass, Radio, User, FileText, ChevronRight, Music, AlertCircle, Loader2,
-  Volume2, VolumeX, Sparkles
+  Play, 
+  Pause, 
+  Download, 
+  Eye, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  FileText, 
+  Music, 
+  User, 
+  Tag, 
+  Calendar, 
+  Disc, 
+  ExternalLink,
+  Search,
+  Filter,
+  Volume2,
+  VolumeX,
+  X,
+  Loader2,
+  Disc3
 } from "lucide-react";
 import { updateReleaseStatusAction } from "@/app/actions/admin";
 
-interface Track {
+export interface TrackItem {
   id: string;
   title: string;
   audioUrl: string;
-  composer: string | null;
-  producer: string | null;
-  lyrics: string | null;
-  isrc: string | null;
-  upc: string | null;
-  tiktokClipStart: string | null;
+  isrc?: string | null;
+  composer?: string | null;
+  producer?: string | null;
+  lyrics?: string | null;
 }
 
-interface Release {
+export interface ReviewItem {
   id: string;
   title: string;
   genre: string;
-  language: string;
-  primaryArtist: string;
-  featuredArtist: string | null;
-  releaseDate: string;
-  coverArtworkUrl: string;
+  type: string;
   status: string;
-  artistUserId: string;
-  artistName: string;
-  artistEmail: string;
-  tracks: Track[];
+  coverArtworkUrl: string;
+  releaseDate: string | Date;
+  upc?: string | null;
+  distributor?: string | null;
+  spotifyUrl?: string | null;
+  appleMusicUrl?: string | null;
+  youtubeMusicUrl?: string | null;
+  tiktokUrl?: string | null;
+  tracks: TrackItem[];
+  user: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    artist?: {
+      name: string;
+    } | null;
+  };
 }
 
-export function ReviewList({ releases }: { releases: Release[] }) {
-  const [list, setList] = useState<Release[]>(releases);
-  const [selected, setSelected] = useState<Release | null>(null);
-  
+const FALLBACK_VINYL = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="8" fill="%230f172a"/><circle cx="40" cy="40" r="30" fill="%231e293b" stroke="%23334155" stroke-width="2"/><circle cx="40" cy="40" r="20" fill="%230f172a"/><circle cx="40" cy="40" r="10" fill="%23e11d48"/><circle cx="40" cy="40" r="3" fill="%23ffffff"/></svg>`;
+
+function resolveMediaUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  if (url.startsWith("/api/media/")) return url;
+  if (url.startsWith("/")) return url;
+  if (
+    url.includes("breakoutmusicrecord.com") ||
+    url.includes("breakoutmusic.online") ||
+    url.includes("r2.cloudflarestorage.com")
+  ) {
+    try {
+      const u = new URL(url);
+      return `/api/media${u.pathname}`;
+    } catch {
+      return `/api/media/${url.replace(/^https?:\/\/[^\/]+\//, "")}`;
+    }
+  }
+  return url;
+}
+
+export default function ReviewList({ initialReleases }: { initialReleases: ReviewItem[] }) {
+  const [releases, setReleases] = useState<ReviewItem[]>(initialReleases);
+  const [selected, setSelected] = useState<ReviewItem | null>(null);
+  const [filter, setFilter] = useState<string>("ALL");
+  const [search, setSearch] = useState<string>("");
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+
   // Audio Player State
-  const [currentTrack, setCurrentTrack] = useState<{ track: Track; release: Release } | null>(null);
+  const [currentTrack, setCurrentTrack] = useState<{
+    track: TrackItem;
+    release: ReviewItem;
+  } | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Action states
-  const [loadingApprove, setLoadingApprove] = useState(false);
-  const [loadingReject, setLoadingReject] = useState(false);
-  const [rejectMode, setRejectMode] = useState(false);
-  const [reason, setReason] = useState("");
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
-  };
-
-  // Audio Event Management
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -72,91 +110,61 @@ export function ReviewList({ releases }: { releases: Release[] }) {
       setDuration(audio.duration || 0);
       setIsBuffering(false);
     };
+    const handleEnded = () => setIsPlaying(false);
     const handleWaiting = () => setIsBuffering(true);
-    const handlePlaying = () => {
-      setIsBuffering(false);
-      setIsPlaying(true);
-    };
-    const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-    };
-    const handleError = (e: any) => {
-      console.warn("Audio error, trying alternate domain fallback:", e);
-      if (audio.src.includes("breakoutmusicrecord.com")) {
-        audio.src = audio.src.replace("breakoutmusicrecord.com", "breakoutmusic.online");
-        audio.load();
-        audio.play().catch(() => {
-          setIsBuffering(false);
-          setIsPlaying(false);
-          showToast("Gagal memutar audio. Pastikan file valid.");
-        });
-        return;
-      } else if (audio.src.includes("breakoutmusic.online")) {
-        audio.src = audio.src.replace("breakoutmusic.online", "breakoutmusicrecord.com");
-        audio.load();
-        audio.play().catch(() => {
-          setIsBuffering(false);
-          setIsPlaying(false);
-          showToast("Gagal memutar audio. Pastikan file valid.");
-        });
-        return;
-      }
+    const handlePlaying = () => setIsBuffering(false);
+    const handleError = () => {
       setIsBuffering(false);
       setIsPlaying(false);
-      showToast("Gagal memutar audio. Format tidak didukung atau URL tidak dapat diakses.");
     };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("ended", handleEnded);
     audio.addEventListener("waiting", handleWaiting);
     audio.addEventListener("playing", handlePlaying);
-    audio.addEventListener("pause", handlePause);
-    audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("waiting", handleWaiting);
       audio.removeEventListener("playing", handlePlaying);
-      audio.removeEventListener("pause", handlePause);
-      audio.removeEventListener("ended", handleEnded);
       audio.removeEventListener("error", handleError);
     };
   }, []);
 
-  const playAudio = (track: Track, release: Release, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (!track.audioUrl) {
-      showToast("URL Audio tidak valid.");
-      return;
-    }
+  const togglePlay = (track: TrackItem, release: ReviewItem, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
 
     if (currentTrack?.track.id === track.id) {
       if (isPlaying) {
         audioRef.current?.pause();
+        setIsPlaying(false);
       } else {
-        audioRef.current?.play().catch(() => {
-          showToast("Izin pemutaran audio dicegah browser. Silakan klik tombol play lagi.");
-        });
+        audioRef.current?.play();
+        setIsPlaying(true);
       }
     } else {
       setCurrentTrack({ track, release });
+      setIsPlaying(true);
       setIsBuffering(true);
-      setCurrentTime(0);
-      setDuration(0);
-
       if (audioRef.current) {
-        audioRef.current.src = track.audioUrl;
-        audioRef.current.load();
-        audioRef.current.play().catch((err) => {
-          console.error("Play error:", err);
+        audioRef.current.src = resolveMediaUrl(track.audioUrl);
+        audioRef.current.play().catch(() => {
           setIsBuffering(false);
-          showToast("Gagal memutar otomatis. Silakan klik Play pada player di bawah.");
+          setIsPlaying(false);
         });
       }
+    }
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = Number(e.target.value);
+    setCurrentTime(time);
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
     }
   };
 
@@ -167,483 +175,440 @@ export function ReviewList({ releases }: { releases: Release[] }) {
     }
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
-    }
-  };
-
-  const formatTime = (secs: number) => {
-    if (isNaN(secs) || secs <= 0) return "0:00";
-    const mins = Math.floor(secs / 60);
-    const remainingSecs = Math.floor(secs % 60);
-    return `${mins}:${remainingSecs < 10 ? "0" : ""}${remainingSecs}`;
-  };
-
-  const handleDownload = async (url: string, filename: string, id: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (!url) {
-      showToast("URL file tidak ditemukan.");
-      return;
-    }
-
-    setDownloadingId(id);
-    showToast(`Memulai unduhan: ${filename}...`);
-
-    try {
-      const proxyUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-      const res = await fetch(proxyUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      if (res.ok) {
-        const blob = await res.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = blobUrl;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
-        showToast(`Unduhan selesai: ${filename}`);
-        return;
-      }
-      throw new Error(`Proxy status: ${res.status}`);
-    } catch (err) {
-      console.warn("Download proxy fallback:", err);
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast("Mengunduh langsung dari server CDN...");
-    } finally {
-      setDownloadingId(null);
-    }
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds) || seconds === 0) return "00:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const target = e.currentTarget;
-    const step = parseInt(target.dataset.fallbackStep || "0", 10);
-    target.dataset.fallbackStep = (step + 1).toString();
+    const img = e.currentTarget;
+    if (img.src !== FALLBACK_VINYL) {
+      img.src = FALLBACK_VINYL;
+    }
+  };
 
-    if (step === 0) {
-      if (target.src.includes("breakoutmusicrecord.com")) {
-        target.src = target.src.replace("breakoutmusicrecord.com", "breakoutmusic.online");
-        return;
-      } else if (target.src.includes("breakoutmusic.online")) {
-        target.src = target.src.replace("breakoutmusic.online", "breakoutmusicrecord.com");
-        return;
+  const handleDownload = (fileUrl: string, filename: string, type: "audio" | "cover", e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const downloadApiUrl = `/api/download?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(filename)}`;
+    window.open(downloadApiUrl, "_blank");
+  };
+
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    try {
+      setIsUpdating(true);
+      const res = await updateReleaseStatusAction(id, newStatus);
+      if (res.success) {
+        setReleases(releases.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
+        if (selected && selected.id === id) {
+          setSelected({ ...selected, status: newStatus });
+        }
+      } else {
+        alert("Gagal mengupdate status: " + res.error);
       }
-    } else if (step === 1) {
-      if (target.src.includes("assets.")) {
-        target.src = target.src.replace("assets.", "releases.");
-        return;
-      } else if (target.src.includes("releases.")) {
-        target.src = target.src.replace("releases.", "assets.");
-        return;
-      }
+    } catch (err: any) {
+      alert("Terjadi kesalahan: " + err.message);
+    } finally {
+      setIsUpdating(false);
     }
-
-    target.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231e1b4b'/><circle cx='50' cy='50' r='30' fill='%23312e81'/><circle cx='50' cy='50' r='10' fill='%234338ca'/><path d='M47 40 L47 55 L58 47 Z' fill='%23a5b4fc'/></svg>";
   };
 
-  const handleApprove = async (rel: Release) => {
-    setLoadingApprove(true);
-    await updateReleaseStatusAction(rel.id, rel.artistUserId, "APPROVED", rel.artistName, rel.artistEmail, rel.title, "");
-    setList(prev => prev.filter(item => item.id !== rel.id));
-    setLoadingApprove(false);
-    setSelected(null);
-    if (currentTrack?.release.id === rel.id) {
-      audioRef.current?.pause();
-      setCurrentTrack(null);
-      setIsPlaying(false);
-    }
-    showToast(`Rilisan "${rel.title}" berhasil disetujui!`);
-  };
-
-  const handleReject = async (rel: Release) => {
-    if (!reason.trim()) {
-      alert("Alasan penolakan harus diisi!");
-      return;
-    }
-    setLoadingReject(true);
-    await updateReleaseStatusAction(rel.id, rel.artistUserId, "REJECTED", rel.artistName, rel.artistEmail, rel.title, reason);
-    setList(prev => prev.filter(item => item.id !== rel.id));
-    setLoadingReject(false);
-    setRejectMode(false);
-    setReason("");
-    setSelected(null);
-    if (currentTrack?.release.id === rel.id) {
-      audioRef.current?.pause();
-      setCurrentTrack(null);
-      setIsPlaying(false);
-    }
-    showToast(`Rilisan "${rel.title}" ditolak.`);
-  };
+  const filtered = releases.filter((r) => {
+    const matchesFilter = filter === "ALL" || r.status === filter;
+    const matchesSearch = 
+      r.title.toLowerCase().includes(search.toLowerCase()) ||
+      r.user?.artist?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      r.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      r.genre.toLowerCase().includes(search.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
 
   return (
-    <>
-      {/* Hidden Native Audio Element */}
-      <audio ref={audioRef} crossOrigin="anonymous" preload="metadata" />
+    <div className="space-y-6 pb-28">
+      {/* Hidden Audio Element */}
+      <audio ref={audioRef} preload="metadata" />
 
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-6 right-6 z-[999999] bg-gray-900/95 text-white px-5 py-3 rounded-2xl shadow-2xl border border-white/10 text-xs font-semibold flex items-center gap-2.5 backdrop-blur-xl animate-fade-in">
-          <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
-          <span>{toastMessage}</span>
+      {/* Search & Filter Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Cari judul lagu, artis, atau genre..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+          />
         </div>
-      )}
 
-      {/* Pending Grid List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pb-28">
-        {list.map(rel => {
-          const firstTrack = rel.tracks?.[0];
-          const isThisTrackActive = firstTrack && currentTrack?.track.id === firstTrack.id;
-          const isThisPlaying = isThisTrackActive && isPlaying;
-
-          return (
-            <div
-              key={rel.id}
-              onClick={() => { setSelected(rel); setRejectMode(false); setReason(""); }}
-              className={`cursor-pointer group bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-xl hover:shadow-purple-500/5 transition-all duration-300 hover:-translate-y-1 flex flex-col ${
-                isThisTrackActive ? "ring-2 ring-purple-500" : ""
+        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+          <Filter className="w-4 h-4 text-slate-400 hidden md:block mr-1" />
+          {["ALL", "PENDING", "PROCESSING", "APPROVED", "REJECTED"].map((st) => (
+            <button
+              key={st}
+              onClick={() => setFilter(st)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                filter === st
+                  ? "bg-red-600 text-white shadow-sm shadow-red-500/20"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
-              {/* Cover Aspect Box */}
-              <div className="aspect-square bg-gray-900 w-full relative overflow-hidden shrink-0">
-                <img
-                  src={rel.coverArtworkUrl}
-                  alt={rel.title}
-                  onError={handleImageError}
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center gap-3">
-                  {firstTrack && (
-                    <button
-                      onClick={(e) => playAudio(firstTrack, rel, e)}
-                      className="w-12 h-12 bg-purple-600/90 backdrop-blur-md rounded-full flex items-center justify-center text-white font-bold shadow-lg hover:scale-110 transition"
-                      title={isThisPlaying ? "Pause" : "Play"}
-                    >
-                      {isThisPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
-                    </button>
-                  )}
-                  <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                    <Eye className="w-5 h-5" />
-                  </div>
-                </div>
-                <span className="absolute bottom-3 left-3 text-[10px] font-bold px-2.5 py-1 bg-yellow-400 text-yellow-950 rounded-full shadow">
-                  PENDING REVIEW
-                </span>
-              </div>
-
-              {/* Info body */}
-              <div className="p-5 flex-1 flex flex-col justify-between">
-                <div>
-                  <h4 className="font-bold text-gray-900 truncate text-base mb-1 group-hover:text-purple-600 transition flex items-center gap-1.5">
-                    {rel.title}
-                    {isThisPlaying && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
-                  </h4>
-                  <p className="text-xs font-semibold text-gray-500 truncate mb-2">
-                    {rel.primaryArtist} {rel.featuredArtist && `(feat. ${rel.featuredArtist})`}
-                  </p>
-                  <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
-                    <Compass className="w-3.5 h-3.5" />
-                    <span>{rel.genre}</span>
-                  </div>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {(() => {
-                      const d = new Date(rel.releaseDate);
-                      return isNaN(d.getTime()) ? "-" : d.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
-                    })()}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-purple-500 group-hover:translate-x-0.5 transition" />
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              {st}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Floating Global Audio Player Bar */}
+      {/* Main Table */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        {filtered.length === 0 ? (
+          <div className="text-center py-16">
+            <Disc3 className="w-12 h-12 text-slate-300 mx-auto mb-3 animate-spin-slow" />
+            <h3 className="text-sm font-semibold text-slate-700">Tidak ada data rilis</h3>
+            <p className="text-xs text-slate-400 mt-1">Belum ada pengajuan lagu yang sesuai dengan filter.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                  <th className="py-3.5 px-4">Artwork & Judul</th>
+                  <th className="py-3.5 px-4">Artis / Uploader</th>
+                  <th className="py-3.5 px-4">Tipe & Genre</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Tanggal Rilis</th>
+                  <th className="py-3.5 px-4 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {filtered.map((rel) => {
+                  const firstTrack = rel.tracks[0];
+                  const isThisPlaying = firstTrack && currentTrack?.track.id === firstTrack.id && isPlaying;
+
+                  return (
+                    <tr
+                      key={rel.id}
+                      onClick={() => setSelected(rel)}
+                      className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                    >
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-900 border border-slate-200/80 flex-shrink-0 shadow-sm">
+                            <img
+                              src={resolveMediaUrl(rel.coverArtworkUrl)}
+                              alt={rel.title}
+                              onError={handleImageError}
+                              className="w-full h-full object-cover"
+                            />
+                            {firstTrack && (
+                              <button
+                                onClick={(e) => togglePlay(firstTrack, rel, e)}
+                                className="absolute inset-0 bg-black/40 hover:bg-black/60 flex items-center justify-center text-white transition-opacity opacity-0 group-hover:opacity-100"
+                                title={isThisPlaying ? "Pause" : "Play Audio"}
+                              >
+                                {isThisPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                              </button>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-semibold text-slate-900 truncate block max-w-[200px]">
+                              {rel.title}
+                            </span>
+                            <span className="text-xs text-slate-400">
+                              {rel.tracks.length} Track
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="text-slate-800 font-medium truncate max-w-[150px]">
+                          {rel.user?.artist?.name || rel.user?.name || "No Artist"}
+                        </div>
+                        <div className="text-xs text-slate-400 truncate max-w-[150px]">
+                          {rel.user?.email}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold mr-1.5">
+                          {rel.type}
+                        </span>
+                        <span className="text-xs text-slate-500">{rel.genre}</span>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                            rel.status === "APPROVED" || rel.status === "RELEASED"
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : rel.status === "REJECTED"
+                              ? "bg-rose-50 text-rose-700 border border-rose-200"
+                              : rel.status === "PROCESSING"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-blue-50 text-blue-700 border border-blue-200"
+                          }`}
+                        >
+                          {rel.status}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap text-xs text-slate-500">
+                        {new Date(rel.releaseDate).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric"
+                        })}
+                      </td>
+
+                      <td className="py-3.5 px-4 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1.5">
+                          {firstTrack && (
+                            <button
+                              onClick={(e) => togglePlay(firstTrack, rel, e)}
+                              className={`p-2 rounded-xl border transition-all ${
+                                isThisPlaying
+                                  ? "bg-red-50 text-red-600 border-red-200"
+                                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                              }`}
+                              title={isThisPlaying ? "Pause" : "Play Audio"}
+                            >
+                              {isThisPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setSelected(rel)}
+                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                            title="Lihat Detail Rilis"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Floating Bottom Audio Player */}
       {currentTrack && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-8 md:w-[480px] z-[99998] bg-gray-900/95 text-white backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 p-3.5 animate-slide-up flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-gray-800 shrink-0 border border-white/10">
-              <img 
-                src={currentTrack.release.coverArtworkUrl} 
-                alt="Artwork" 
-                onError={handleImageError}
-                className="w-full h-full object-cover" 
-              />
+        <div className="fixed bottom-4 left-4 right-4 md:left-64 md:right-8 z-40 bg-slate-950/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-3.5 shadow-2xl text-white animate-in slide-in-from-bottom duration-300">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
+              <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 flex-shrink-0">
+                <img
+                  src={resolveMediaUrl(currentTrack.release.coverArtworkUrl)}
+                  alt="Track Cover"
+                  onError={handleImageError}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-white truncate leading-tight">
+                  {currentTrack.track.title}
+                </p>
+                <p className="text-xs text-slate-400 truncate mt-0.5">
+                  {currentTrack.release.user?.artist?.name || currentTrack.release.user?.name || "Breakout Artist"} â€¢ {currentTrack.release.title}
+                </p>
+              </div>
             </div>
 
-            <div className="min-w-0 flex-1">
-              <p className="font-bold text-xs text-white truncate">{currentTrack.track.title}</p>
-              <p className="text-[11px] text-gray-400 truncate">{currentTrack.release.primaryArtist}</p>
+            <div className="flex-1 max-w-xl w-full flex flex-col items-center gap-1.5">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => togglePlay(currentTrack.track, currentTrack.release)}
+                  disabled={isBuffering}
+                  className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-lg shadow-red-600/30 transition-all hover:scale-105 active:scale-95"
+                >
+                  {isBuffering ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : isPlaying ? (
+                    <Pause className="w-5 h-5 fill-current" />
+                  ) : (
+                    <Play className="w-5 h-5 fill-current ml-0.5" />
+                  )}
+                </button>
+              </div>
+
+              <div className="w-full flex items-center gap-2.5 text-xs text-slate-400">
+                <span className="w-10 text-right font-mono">{formatTime(currentTime)}</span>
+                <input
+                  type="range"
+                  min="0"
+                  max={duration || 100}
+                  value={currentTime}
+                  onChange={handleSeek}
+                  className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-600"
+                />
+                <span className="w-10 font-mono">{formatTime(duration)}</span>
+              </div>
             </div>
 
-            <button
-              onClick={() => {
-                if (isPlaying) {
-                  audioRef.current?.pause();
-                } else {
-                  audioRef.current?.play();
-                }
-              }}
-              className="w-9 h-9 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white flex items-center justify-center hover:scale-105 transition shadow-lg shrink-0"
-              title={isPlaying ? "Pause" : "Play"}
-            >
-              {isBuffering ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : isPlaying ? (
-                <Pause className="w-4 h-4" />
-              ) : (
-                <Play className="w-4 h-4 fill-current ml-0.5" />
-              )}
-            </button>
-
-            <button
-              onClick={toggleMute}
-              className="w-8 h-8 rounded-full text-gray-400 hover:text-white flex items-center justify-center transition shrink-0"
-              title={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-
-            <button
-              onClick={(e) => handleDownload(currentTrack.track.audioUrl, `${currentTrack.release.title} - ${currentTrack.track.title}.mp3`, currentTrack.track.id, e)}
-              className="w-8 h-8 rounded-full text-gray-400 hover:text-emerald-400 flex items-center justify-center transition shrink-0"
-              title="Download Audio File"
-            >
-              <Download className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={() => {
-                audioRef.current?.pause();
-                setCurrentTrack(null);
-                setIsPlaying(false);
-              }}
-              className="w-8 h-8 rounded-full text-gray-400 hover:text-white flex items-center justify-center transition shrink-0"
-              title="Tutup Player"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-[10px] font-mono text-gray-400 w-8">{formatTime(currentTime)}</span>
-            <input 
-              type="range" 
-              min={0} 
-              max={duration || 100} 
-              value={currentTime} 
-              onChange={handleSeek}
-              className="flex-1 h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
-            />
-            <span className="text-[10px] font-mono text-gray-400 w-8 text-right">{formatTime(duration)}</span>
-          </div>
-        </div>
-      )}
-
-      {/* Review Modal */}
-      {selected && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[99998] flex items-center justify-center p-4 animate-fade-in"
-          onClick={() => { setSelected(null); setRejectMode(false); }}
-        >
-          <div
-            className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="relative p-6 pb-4 bg-gradient-to-br from-[#7c3aed] to-[#a855f7] rounded-t-3xl text-white">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => { setSelected(null); setRejectMode(false); }}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
+                onClick={toggleMute}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
+                title={isMuted ? "Unmute" : "Mute"}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={(e) => handleDownload(currentTrack.track.audioUrl, `${currentTrack.track.title}.mp3`, "audio", e)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
+                title="Download Audio"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  audioRef.current?.pause();
+                  setIsPlaying(false);
+                  setCurrentTrack(null);
+                }}
+                className="p-2 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-slate-800/60 transition-colors"
+                title="Tutup Player"
               >
                 <X className="w-4 h-4" />
               </button>
-
-              <div className="flex gap-5 items-center">
-                <div className="relative w-20 h-20 rounded-2xl bg-white/10 overflow-hidden shadow-lg border border-white/15 group/cover shrink-0">
-                  <img 
-                    src={selected.coverArtworkUrl} 
-                    alt="Cover" 
-                    onError={handleImageError}
-                    className="w-full h-full object-cover" 
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/cover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); handleDownload(selected.coverArtworkUrl, `${selected.title} - Cover.jpg`, 'cover', e); }} 
-                      disabled={downloadingId === 'cover'}
-                      className="p-2 bg-white/20 hover:bg-white/40 rounded-full transition text-white disabled:opacity-50"
-                      title="Download Cover Artwork"
-                    >
-                      {downloadingId === 'cover' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <span className="text-[10px] font-extrabold tracking-widest bg-yellow-400 text-yellow-950 px-2.5 py-0.5 rounded-full uppercase">
-                    Review Queue
-                  </span>
-                  <h2 className="text-xl font-bold mt-1.5 truncate">{selected.title}</h2>
-                  <p className="text-white/80 text-sm truncate">by {selected.primaryArtist}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-6">
-              
-              {/* Audio Track Player */}
-              {selected.tracks.map((track) => (
-                <div key={track.id} className="p-4 bg-purple-50/50 border border-purple-100 rounded-2xl flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <button
-                      onClick={(e) => playAudio(track, selected, e)}
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-                        currentTrack?.track.id === track.id && isPlaying
-                          ? "bg-purple-600 text-white shadow-lg shadow-purple-500/25" 
-                          : "bg-purple-100 text-purple-700 hover:bg-purple-200"
-                      }`}
-                    >
-                      {currentTrack?.track.id === track.id && isBuffering ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-purple-300" />
-                      ) : currentTrack?.track.id === track.id && isPlaying ? (
-                        <Pause className="w-5 h-5" />
-                      ) : (
-                        <Play className="w-5 h-5 fill-current ml-0.5" />
-                      )}
-                    </button>
-                    <div className="min-w-0">
-                      <p className="font-bold text-gray-900 truncate text-sm">{track.title}</p>
-                      <p className="text-xs text-gray-500 truncate flex items-center gap-1.5 mt-0.5">
-                        <Music className="w-3.5 h-3.5 text-purple-600" /> Master Audio File
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={(e) => handleDownload(track.audioUrl, `${selected.title} - ${track.title}.mp3`, track.id, e)}
-                    disabled={downloadingId === track.id}
-                    className="h-10 px-4 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-xs flex items-center gap-1.5 shadow-sm transition disabled:opacity-50 shrink-0"
-                  >
-                    {downloadingId === track.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                    <span>Download</span>
-                  </button>
-                </div>
-              ))}
-
-              {/* Specs Grid */}
-              <div className="grid grid-cols-2 gap-3.5">
-                <SpecItem label="Genre" value={selected.genre} icon={<Compass className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="Bahasa" value={selected.language} icon={<Radio className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="TikTok Clip Start" value={selected.tracks?.[0]?.tiktokClipStart ? `Detik ${selected.tracks?.[0]?.tiktokClipStart}` : "-"} icon={<Clock className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="Artis Terdaftar" value={selected.artistName} icon={<User className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="ISRC" value={selected.tracks?.[0]?.isrc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="UPC" value={selected.tracks?.[0]?.upc || "Auto-Generate"} icon={<Tag className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="Composer" value={selected.tracks?.[0]?.composer || "-"} icon={<User className="w-4 h-4 text-purple-600" />} />
-                <SpecItem label="Producer" value={selected.tracks?.[0]?.producer || "-"} icon={<User className="w-4 h-4 text-purple-600" />} />
-              </div>
-
-              {/* Lyrics Panel */}
-              {selected.tracks?.[0]?.lyrics && (
-                <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <FileText className="w-4 h-4 text-gray-400" /> Lirik Lagu
-                  </h4>
-                  <pre className="text-xs text-gray-700 leading-relaxed font-sans whitespace-pre-wrap max-h-32 overflow-y-auto bg-white p-3.5 rounded-xl border border-gray-100">
-                    {selected.tracks?.[0]?.lyrics}
-                  </pre>
-                </div>
-              )}
-
-              {/* Reject Reason Form */}
-              {rejectMode && (
-                <div className="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-3">
-                  <h4 className="font-bold text-red-700 text-sm flex items-center gap-1.5">
-                    <AlertCircle className="w-4 h-4 text-red-600" /> Alasan Penolakan Musik
-                  </h4>
-                  <textarea
-                    className="w-full text-sm p-3 border border-red-200 rounded-xl outline-none focus:border-red-500 transition bg-white text-gray-900"
-                    rows={3}
-                    placeholder="Contoh: Kualitas cover buram/blur, audio noise, dll..."
-                    value={reason}
-                    onChange={e => setReason(e.target.value)}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setRejectMode(false)}
-                      className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700 transition"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      onClick={() => handleReject(selected)}
-                      disabled={loadingReject}
-                      className="px-4 py-2 text-xs font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 flex items-center gap-1.5 disabled:opacity-50 transition"
-                    >
-                      {loadingReject && <Loader2 className="w-3 h-3 animate-spin" />}
-                      Tolak & Kirim
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Decision Action Buttons */}
-              {!rejectMode && (
-                <div className="flex gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    onClick={() => handleApprove(selected)}
-                    disabled={loadingApprove || loadingReject}
-                    className="flex-1 h-12 bg-gradient-to-r from-green-500 to-emerald-600 hover:opacity-90 transition text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-green-500/25"
-                  >
-                    {loadingApprove ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                    Approve Release
-                  </button>
-                  <button
-                    onClick={() => setRejectMode(true)}
-                    disabled={loadingApprove || loadingReject}
-                    className="flex-1 h-12 bg-gray-100 hover:bg-red-50 hover:text-red-600 transition text-gray-600 font-bold rounded-2xl flex items-center justify-center gap-2"
-                  >
-                    <X className="w-4 h-4" />
-                    Reject Release
-                  </button>
-                </div>
-              )}
-
             </div>
           </div>
         </div>
       )}
-    </>
-  );
-}
 
-function SpecItem({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-gray-50 border border-gray-100">
-      <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
-        {icon}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</p>
-        <p className="text-sm font-semibold text-gray-800 truncate">{value}</p>
-      </div>
+      {/* Modal Detail & Review */}
+      {selected && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 space-y-6">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-4">
+                <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 shadow-md flex-shrink-0">
+                  <img
+                    src={resolveMediaUrl(selected.coverArtworkUrl)}
+                    alt={selected.title}
+                    onError={handleImageError}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900">{selected.title}</h3>
+                  <p className="text-sm text-slate-500 mt-0.5">
+                    {selected.user?.artist?.name || selected.user?.name} â€¢ {selected.genre}
+                  </p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md">
+                      {selected.type}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownload(selected.coverArtworkUrl, `${selected.title} - Cover.jpg`, "cover", e);
+                      }}
+                      className="px-2.5 py-0.5 bg-red-50 text-red-600 text-xs font-semibold rounded-md border border-red-200 hover:bg-red-100 flex items-center gap-1"
+                    >
+                      <Download className="w-3 h-3" /> Unduh Cover
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelected(null)}
+                className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Track list */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Music className="w-4 h-4 text-red-600" />
+                Daftar Lagu ({selected.tracks.length})
+              </h4>
+              <div className="space-y-2">
+                {selected.tracks.map((track, idx) => {
+                  const isTrackActive = currentTrack?.track.id === track.id && isPlaying;
+                  return (
+                    <div
+                      key={track.id}
+                      className={`p-3 rounded-2xl border flex items-center justify-between gap-3 transition-all ${
+                        isTrackActive ? "bg-red-50/70 border-red-200" : "bg-white border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <button
+                          onClick={() => togglePlay(track, selected)}
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                            isTrackActive
+                              ? "bg-red-600 text-white shadow-md shadow-red-500/30"
+                              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          }`}
+                        >
+                          {isTrackActive ? (
+                            <Pause className="w-4 h-4 fill-current" />
+                          ) : (
+                            <Play className="w-4 h-4 fill-current ml-0.5" />
+                          )}
+                        </button>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">
+                            {idx + 1}. {track.title}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {track.isrc ? `ISRC: ${track.isrc}` : "ISRC Auto-Generated"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={(e) => handleDownload(track.audioUrl, `${track.title}.mp3`, "audio", e)}
+                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                        title="Download Audio Master"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Status Change Buttons */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+              <div className="text-xs text-slate-500">
+                Ubah status persetujuan rilis:
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={isUpdating || selected.status === "APPROVED"}
+                  onClick={() => handleStatusChange(selected.id, "APPROVED")}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl disabled:opacity-50 transition-all shadow-sm"
+                >
+                  Approve
+                </button>
+                <button
+                  disabled={isUpdating || selected.status === "PROCESSING"}
+                  onClick={() => handleStatusChange(selected.id, "PROCESSING")}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl disabled:opacity-50 transition-all shadow-sm"
+                >
+                  Processing
+                </button>
+                <button
+                  disabled={isUpdating || selected.status === "REJECTED"}
+                  onClick={() => handleStatusChange(selected.id, "REJECTED")}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl disabled:opacity-50 transition-all shadow-sm"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
