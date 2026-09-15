@@ -48,8 +48,11 @@ export default function LoginPage() {
         }}
       >
         {/* Header Logo */}
-        <div className="flex flex-col items-center mb-6">
-          <img src="/logo-bne.png" alt="Breakout New Era" className="h-16 w-auto object-contain mix-blend-screen" />
+        <div className="flex flex-col items-center mb-6 mt-2">
+          <h1 className="font-extrabold text-white text-2xl sm:text-3xl tracking-widest uppercase text-center drop-shadow-lg">
+            BREAKOUT<br/>
+            <span className="text-white/80 text-lg sm:text-xl mt-1 block tracking-[0.3em]">MUSIC RECORD</span>
+          </h1>
         </div>
 
         {error && (

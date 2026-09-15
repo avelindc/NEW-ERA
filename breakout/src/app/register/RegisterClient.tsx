@@ -54,8 +54,11 @@ export function RegisterClient() {
       <div className="relative z-10 w-full max-w-[420px] sm:max-w-[480px] rounded-[32px] p-7 sm:p-10 flex flex-col my-6" style={{background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.35)",boxShadow:"0 8px 32px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.4)"}}>
         
         {/* Header Logo */}
-        <div className="flex flex-col items-center mb-6">
-          <img src="/logo-bne.png" alt="Breakout New Era" className="h-16 w-auto object-contain mix-blend-screen" />
+        <div className="flex flex-col items-center mb-6 mt-2">
+          <h1 className="font-extrabold text-white text-2xl sm:text-3xl tracking-widest uppercase text-center drop-shadow-lg">
+            BREAKOUT<br/>
+            <span className="text-white/80 text-lg sm:text-xl mt-1 block tracking-[0.3em]">MUSIC RECORD</span>
+          </h1>
         </div>
 
         {/* Error Message */}
