@@ -16,27 +16,35 @@ export async function GET(request: Request) {
       return new NextResponse("Missing URL", { status: 400 });
     }
 
-    // Fetch the file from the remote server
+    // Fetch the file from Cloudflare R2
     const res = await fetch(url);
     if (!res.ok) {
-      throw new Error(`Failed to fetch file: ${res.status} ${res.statusText}`);
+      return NextResponse.redirect(url, 302);
     }
 
-    // Pass the response body directly
-    const body = res.body;
-    const headers = new Headers(res.headers);
-    headers.set("Content-Disposition", `attachment; filename="${filename}"`);
+    const arrayBuffer = await res.arrayBuffer();
+    const contentType = res.headers.get("content-type") || "application/octet-stream";
 
-    // Remove headers that might interfere
-    headers.delete("content-encoding");
-    headers.delete("access-control-allow-origin");
+    const cleanFilename = encodeURIComponent(filename).replace(/['()]/g, escape);
 
-    return new NextResponse(body, {
+    return new NextResponse(Buffer.from(arrayBuffer), {
       status: 200,
-      headers,
+      headers: {
+        "Content-Type": contentType,
+        "Content-Disposition": `attachment; filename="${filename}"; filename*=UTF-8''${cleanFilename}`,
+        "Content-Length": arrayBuffer.byteLength.toString(),
+        "Cache-Control": "no-cache",
+      },
     });
   } catch (error: any) {
     console.error("Proxy download error:", error);
+    // Fallback redirect
+    const { searchParams } = new URL(request.url);
+    const fallbackUrl = searchParams.get("url");
+    if (fallbackUrl) {
+      return NextResponse.redirect(fallbackUrl, 302);
+    }
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
+

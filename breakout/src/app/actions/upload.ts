@@ -108,9 +108,9 @@ export async function assembleAndUploadToR2Action({
     let publicUrl = "";
 
     if (type === "cover") {
-      bucket = BUCKET_ASSETS;
+      bucket = BUCKET_RELEASES;
       key = `covers/${artistId || session.user.id}-${timestamp}.${ext}`;
-      publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
+      publicUrl = `${R2_PUBLIC_URL_RELEASES.replace(/\/$/, "")}/${key}`;
     } else if (type === "audio") {
       bucket = BUCKET_RELEASES;
       key = `audio/${artistId || session.user.id}-${timestamp}.${ext}`;
@@ -170,9 +170,9 @@ export async function directUploadSmallFileAction(formData: FormData) {
     let publicUrl = "";
 
     if (type === "cover") {
-      bucket = BUCKET_ASSETS;
+      bucket = BUCKET_RELEASES;
       key = `covers/${artistId || session.user.id}-${timestamp}.${ext}`;
-      publicUrl = `${R2_PUBLIC_URL_ASSETS.replace(/\/$/, "")}/${key}`;
+      publicUrl = `${R2_PUBLIC_URL_RELEASES.replace(/\/$/, "")}/${key}`;
     } else if (type === "audio") {
       bucket = BUCKET_RELEASES;
       key = `audio/${artistId || session.user.id}-${timestamp}.${ext}`;
