@@ -198,7 +198,7 @@ export default async function LandingPage() {
               </div>
 
               <div className="mt-8">
-                <NeonArrowButton href="#pricing" text="LEARN MORE" size="normal" />
+                <NeonArrowButton href="#features" text="LEARN MORE" size="normal" />
               </div>
             </div>
 
@@ -595,7 +595,7 @@ export default async function LandingPage() {
               <ul className="space-y-2 text-xs font-bold uppercase tracking-wider text-gray-400">
                 <li><Link href="#about" className="hover:text-[#D4FF00] transition">About</Link></li>
                 <li><Link href="#distribution" className="hover:text-[#D4FF00] transition">Distribution</Link></li>
-                <li><Link href="#pricing" className="hover:text-[#D4FF00] transition">Pricing</Link></li>
+                
                 <li><Link href="/login" className="hover:text-[#D4FF00] transition">Artist Login</Link></li>
                 <li><Link href="/register" className="hover:text-[#D4FF00] transition">Create Account</Link></li>
               </ul>
@@ -612,7 +612,7 @@ export default async function LandingPage() {
           </div>
 
           <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-600 gap-4">
-            <p>{cms.footer.copyright || "© 2026 BREAKOUT Music Distribution. All rights reserved."}</p>
+            <p>{cms.footer.copyright || "Â© 2026 BREAKOUT Music Distribution. All rights reserved."}</p>
             <div className="flex gap-6">
               <Link href="#" className="hover:text-gray-400">Terms of Service</Link>
               <Link href="#" className="hover:text-gray-400">Privacy Policy</Link>

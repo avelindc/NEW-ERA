@@ -3,6 +3,27 @@
 import { useState } from "react";
 import { CMSData, saveLandingPageCMS } from "@/app/actions/cms";
 import { uploadCMSImageAction } from "@/app/actions/cmsUpload";
+
+const FALLBACK_AVATAR = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="20" fill="%23e2e8f0"/><path d="M20 21C22.7614 21 25 18.7614 25 16C25 13.2386 22.7614 11 20 11C17.2386 11 15 13.2386 15 16C15 18.7614 17.2386 21 20 21Z" fill="%2394a3b8"/><path d="M10 32C10 27.5817 14.4772 24 20 24C25.5228 24 30 27.5817 30 32" fill="%2394a3b8"/></svg>`;
+
+function resolveMediaUrl(url: string | null | undefined): string {
+  if (!url) return "";
+  if (url.startsWith("/api/media/")) return url;
+  if (url.startsWith("/")) return url;
+  if (
+    url.includes("breakoutmusicrecord.com") ||
+    url.includes("breakoutmusic.online") ||
+    url.includes("r2.cloudflarestorage.com")
+  ) {
+    try {
+      const u = new URL(url);
+      return `/api/media${u.pathname}`;
+    } catch {
+      return `/api/media/${url.replace(/^https?:\/\/[^\/]+\//, "")}`;
+    }
+  }
+  return url;
+}
 import { 
   Save, Loader2, Image as ImageIcon, Plus, Trash2, 
   Settings, LayoutTemplate, Info, Star, CreditCard, MessageCircle, Link as LinkIcon, Phone,
@@ -113,7 +134,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
     { id: "about", name: "About Us", icon: Info },
     { id: "aboutLabel", name: "About Label", icon: Disc },
     { id: "features", name: "Features", icon: Star },
-    { id: "pricing", name: "Pricing", icon: CreditCard },
+    
     { id: "faq", name: "FAQ", icon: MessageCircle },
     { id: "testimonials", name: "Testimonials", icon: Star },
     { id: "partners", name: "Partners", icon: LinkIcon },
@@ -297,7 +318,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['hero', 'backgroundUrl'], 'hero.bg')} />
                     </label>
                   </div>
-                  {data.hero.backgroundUrl && <img src={data.hero.backgroundUrl} alt="Hero BG" className="mt-4 h-32 w-auto object-cover rounded-xl" />}
+                  {data.hero.backgroundUrl && <img src={resolveMediaUrl(data.hero.backgroundUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }} alt="Hero BG" className="mt-4 h-32 w-auto object-cover rounded-xl" />}
                 </div>
               </div>
             </div>
@@ -333,7 +354,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, ['about', 'imageUrl'], 'about.img')} />
                     </label>
                   </div>
-                  {data.about.imageUrl && <img src={data.about.imageUrl} alt="About" className="mt-4 h-32 w-auto object-cover rounded-xl" />}
+                  {data.about.imageUrl && <img src={resolveMediaUrl(data.about.imageUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }} alt="About" className="mt-4 h-32 w-auto object-cover rounded-xl" />}
                 </div>
               </div>
             </div>
@@ -586,7 +607,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                         {item.avatarUrl && (
                           <div className="mt-2 flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 w-fit">
                             <img 
-                              src={item.avatarUrl} 
+                              src={resolveMediaUrl(item.avatarUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }} 
                               alt="Avatar" 
                               className="w-10 h-10 rounded-full object-cover border" 
                               onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
@@ -658,7 +679,7 @@ export default function CMSClient({ initialData }: { initialData: CMSData }) {
                         {item.logoUrl && (
                           <div className="mt-2 flex items-center gap-3 bg-white p-2 rounded-lg border border-gray-200 w-fit">
                             <img 
-                              src={item.logoUrl} 
+                              src={resolveMediaUrl(item.logoUrl)} onError={(e) => { e.currentTarget.src = FALLBACK_AVATAR; }} 
                               alt="Logo" 
                               className="h-8 w-auto object-contain max-w-[120px]" 
                               onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}

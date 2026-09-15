@@ -1,7 +1,7 @@
 "use server";
 
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2Client, BUCKET_ASSETS, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
+import { r2Client, BUCKET_ASSETS } from "@/lib/r2";
 import { v4 as uuidv4 } from "uuid";
 
 export async function uploadCMSImageAction(formData: FormData) {
@@ -9,7 +9,7 @@ export async function uploadCMSImageAction(formData: FormData) {
     const file = formData.get("file") as File;
     if (!file) throw new Error("No file provided");
 
-    const ext = file.name.split('.').pop() || 'jpg';
+    const ext = file.name.split(".").pop() || "jpg";
     const key = `cms/${uuidv4()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -22,9 +22,8 @@ export async function uploadCMSImageAction(formData: FormData) {
 
     await r2Client.send(command);
 
-    const publicBase = R2_PUBLIC_URL_ASSETS;
-    const url = `${publicBase.replace(/\/$/, '')}/${key}`;
-    console.log("CMS image uploaded successfully to R2:", url);
+    const url = `/api/media/${key}`;
+    console.log("CMS image uploaded successfully to R2 via media stream:", url);
     return { url };
   } catch (error: any) {
     console.error("CMS Upload error:", error);
