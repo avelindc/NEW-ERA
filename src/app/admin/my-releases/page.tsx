@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { MyReleasesList } from "./MyReleasesList";
+import MyReleasesList from "./MyReleasesList";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +21,13 @@ export default async function AdminMyReleasesPage() {
     return {
       id: release.id,
       title: release.title,
-      genre: release.genre,
-      language: release.language,
-      primaryArtist: release.primaryArtist,
+      genre: release.genre || "Pop",
+      language: release.language || "Indonesia",
+      primaryArtist: release.primaryArtist || release.artist?.stageName || release.artist?.user?.name || "Artist",
       featuredArtist: release.featuredArtist || null,
       releaseDate: releaseDateStr,
-      coverArtworkUrl: release.coverArtworkUrl,
-      status: release.status,
+      coverArtworkUrl: release.coverArtworkUrl || "",
+      status: release.status || "APPROVED",
       artistUserId: release.artist?.userId || "",
       artistName: release.artist?.user?.name || release.artist?.stageName || "Artist",
       artistEmail: release.artist?.user?.email || "",

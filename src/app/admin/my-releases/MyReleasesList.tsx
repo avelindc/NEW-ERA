@@ -1,5 +1,14 @@
 "use client";
 
+import React, { useState } from "react";
+import { 
+  X, Eye, Edit2, Play, Pause, CheckCircle2, ShieldAlert, Tag, 
+  Compass, Radio, User, FileText, ChevronRight, ChevronLeft, Music, AlertCircle, Loader2, Clock, Download,
+  Trash2, Search, Filter, CheckSquare, Square, Disc
+} from "lucide-react";
+import { adminTakedownReleaseAction, adminEditReleaseAction } from "@/app/actions/adminReleaseManagement";
+import { bulkDeleteReleasesAction } from "@/app/actions/admin";
+
 const FALLBACK_VINYL = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80" fill="none"><rect width="80" height="80" rx="8" fill="%230f172a"/><circle cx="40" cy="40" r="30" fill="%231e293b" stroke="%23334155" stroke-width="2"/><circle cx="40" cy="40" r="20" fill="%230f172a"/><circle cx="40" cy="40" r="10" fill="%23e11d48"/><circle cx="40" cy="40" r="3" fill="%23ffffff"/></svg>`;
 
 function resolveMediaUrl(url: string | null | undefined): string {
@@ -20,15 +29,6 @@ function resolveMediaUrl(url: string | null | undefined): string {
   }
   return url;
 }
-
-import React, { useState } from "react";
-import { 
-  X, Eye, Edit2, Play, Pause, CheckCircle2, ShieldAlert, Tag, 
-  Compass, Radio, User, FileText, ChevronRight, ChevronLeft, Music, AlertCircle, Loader2, Clock, Download,
-  Trash2, Search, Filter, CheckSquare, Square, Disc
-} from "lucide-react";
-import { adminTakedownReleaseAction, adminEditReleaseAction } from "@/app/actions/adminReleaseManagement";
-import { bulkDeleteReleasesAction } from "@/app/actions/admin";
 
 interface Track {
   id: string;
@@ -857,3 +857,6 @@ function SpecItem({ label, value, icon }: { label: string; value: string; icon: 
     </div>
   );
 }
+
+
+export default MyReleasesList;
