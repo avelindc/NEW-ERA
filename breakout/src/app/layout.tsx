@@ -5,17 +5,17 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.breakoutmusic.online"),
+  metadataBase: new URL("https://www.breakoutmusicrecord.com"),
   title: {
-    default: "BREAKOUT.ID - Premium Music Distribution",
-    template: "%s | BREAKOUT.ID"
+    default: "BREAKOUT - Premium Music Distribution",
+    template: "%s | BREAKOUT"
   },
   description: "Distribute your music worldwide to Spotify, Apple Music, TikTok, and 150+ platforms.",
   openGraph: {
-    title: "BREAKOUT.ID - Premium Music Distribution",
+    title: "BREAKOUT - Premium Music Distribution",
     description: "Distribute your music worldwide to Spotify, Apple Music, TikTok, and 150+ platforms.",
-    url: "https://www.breakoutmusic.online",
-    siteName: "BREAKOUT.ID",
+    url: "https://www.breakoutmusicrecord.com",
+    siteName: "BREAKOUT",
     locale: "id_ID",
     type: "website",
   },
@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body className={inter.className}>
         {children}
         {/* Global Watermark */}
