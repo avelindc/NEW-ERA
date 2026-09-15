@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { 
@@ -422,7 +422,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
                   {currentTrack.track.title}
                 </p>
                 <p className="text-xs text-slate-400 truncate mt-0.5">
-                  {currentTrack.release.user?.artist?.name || currentTrack.release.user?.name || "Breakout Artist"} Ã¢â‚¬Â¢ {currentTrack.release.title}
+                  {currentTrack.release.user?.artist?.name || currentTrack.release.user?.name || "Breakout Artist"} - {currentTrack.release.title}
                 </p>
               </div>
             </div>
@@ -506,7 +506,7 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
                 <div>
                   <h3 className="text-xl font-bold text-slate-900">{selected.title}</h3>
                   <p className="text-sm text-slate-500 mt-0.5">
-                    {selected.user?.artist?.name || selected.user?.name} Ã¢â‚¬Â¢ {selected.genre}
+                    {selected.user?.artist?.name || selected.user?.name} - {selected.genre}
                   </p>
                   <div className="mt-2 flex items-center gap-2">
                     <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md">
