@@ -130,7 +130,6 @@ export function Navbar({ cms }: { cms: any }) {
           <Link href="#about" className="hover:text-[#D4FF00] transition-colors">ABOUT</Link>
           <Link href="#distribution" className="hover:text-[#D4FF00] transition-colors">DISTRIBUTION</Link>
           <Link href="#features" className="hover:text-[#D4FF00] transition-colors">WHY US</Link>
-          <Link href="#pricing" className="hover:text-[#D4FF00] transition-colors">PRICING</Link>
           <Link href="#releases" className="hover:text-[#D4FF00] transition-colors">CATALOG</Link>
           <Link href="#partners" className="hover:text-[#D4FF00] transition-colors">PARTNERS</Link>
           <Link href="#contact" className="hover:text-[#D4FF00] transition-colors">CONTACT</Link>
@@ -171,9 +170,9 @@ export function Navbar({ cms }: { cms: any }) {
           <Link href="#about" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">ABOUT</Link>
           <Link href="#distribution" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">DISTRIBUTION</Link>
           <Link href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">WHY US</Link>
-          <Link href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">PRICING</Link>
-          <Link href="#artists" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">ARTISTS</Link>
+          <Link href="#releases" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">CATALOG</Link>
           <Link href="#partners" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">OUR PARTNERS</Link>
+          <Link href="#contact" onClick={() => setMobileMenuOpen(false)} className="text-sm font-bold tracking-wider uppercase text-gray-200 hover:text-[#D4FF00]">CONTACT</Link>
           <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
             <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="text-center py-2.5 rounded-full border border-white/20 text-white font-bold text-xs uppercase tracking-wider">LOGIN</Link>
             <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="btn-neon-lime py-3 text-center text-xs uppercase tracking-wider">START DISTRIBUTING</Link>
