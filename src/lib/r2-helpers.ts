@@ -2,6 +2,7 @@
 
 import { GetObjectCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { cookies } from "next/headers";
 import { 
   r2Client, 
   BUCKET_RELEASES, 
@@ -162,19 +163,26 @@ export async function uploadFileToAPI(
     }
 
     // Get the base URL for API calls
-    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000';
+    const baseUrl = process.env.NEXTAUTH_URL 
+      ? process.env.NEXTAUTH_URL 
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3000';
     
     const apiUrl = `${baseUrl}/api/upload`;
     
     console.log(`[uploadFileToAPI] Uploading to: ${apiUrl}`);
     console.log(`[uploadFileToAPI] File: ${file.name}, Type: ${uploadType}, Size: ${file.size}`);
 
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.getAll().map(c => `${c.name}=${c.value}`).join('; ');
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       body: formData,
-      // Don't set Content-Type header - let browser set it with boundary
+      headers: {
+        'Cookie': cookieHeader
+      }
     });
 
     console.log(`[uploadFileToAPI] Response status: ${response.status}`);
