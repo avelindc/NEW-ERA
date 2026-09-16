@@ -33,8 +33,9 @@ export interface TrackItem {
   isrc?: string | null;
   composer?: string | null;
   producer?: string | null;
-  lyrics?: string | null;
-}
+    lyrics?: string | null;
+    tiktokClipStart?: string | null;
+  }
 
 export interface ReviewItem {
   id: string;
@@ -599,7 +600,8 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
                               )}
                               {track.composer && <span className="block text-[11px]">Composer: <span className="text-slate-600 font-medium">{track.composer}</span></span>}
                               {track.producer && <span className="block text-[11px]">Producer: <span className="text-slate-600 font-medium">{track.producer}</span></span>}
-                            </div>
+                              {track.tiktokClipStart && <span className="block text-[11px]">TikTok Clip: <span className="text-slate-600 font-medium">{track.tiktokClipStart}</span></span>}
+                              </div>
                         </div>
                       </div>
 
