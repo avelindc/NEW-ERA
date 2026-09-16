@@ -155,148 +155,63 @@ export async function uploadFileToAPI(
   artistId?: string
 ): Promise<{ success: boolean; url?: string; error?: string; key?: string }> {
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', uploadType);
-    if (artistId) {
-      formData.append('artistId', artistId);
+    let bucket: string;
+    let folder: string;
+
+    switch (uploadType) {
+      case 'cover':
+        bucket = BUCKET_RELEASES;
+        folder = 'covers';
+        break;
+      case 'audio':
+        bucket = BUCKET_RELEASES;
+        folder = 'audio';
+        break;
+      case 'profile':
+        bucket = BUCKET_PROFILES;
+        folder = 'avatars';
+        break;
+      case 'asset':
+      case 'cms':
+      case 'brand':
+        bucket = BUCKET_ASSETS;
+        folder = uploadType === 'brand' ? 'brand' : 'cms';
+        break;
+      case 'message':
+        bucket = BUCKET_ASSETS;
+        folder = 'messages';
+        break;
+      case 'contract':
+        bucket = BUCKET_ASSETS;
+        folder = uploadType === 'signature' ? 'signatures' : 'contracts';
+        break;
+      default:
+        return { success: false, error: "Invalid upload type" };
     }
 
-    // Get the base URL for API calls
-    const baseUrl = process.env.NEXTAUTH_URL 
-      ? process.env.NEXTAUTH_URL 
-      : process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3000';
-    
-    const apiUrl = `${baseUrl}/api/upload`;
-    
-    console.log(`[uploadFileToAPI] Uploading to: ${apiUrl}`);
-    console.log(`[uploadFileToAPI] File: ${file.name}, Type: ${uploadType}, Size: ${file.size}`);
+    const timestamp = Date.now();
+    const ext = file.name.split('.').pop() || 'tmp';
+    const identifier = artistId || 'upload';
+    const filename = `${identifier}-${timestamp}.${ext}`;
+    const key = `${folder}/${filename}`;
 
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.getAll().map(c => `${c.name}=${c.value}`).join('; ');
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Cookie': cookieHeader
-      }
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: file.type,
     });
 
-    console.log(`[uploadFileToAPI] Response status: ${response.status}`);
-    console.log(`[uploadFileToAPI] Response headers:`, {
-      contentType: response.headers.get('content-type'),
-      contentLength: response.headers.get('content-length')
-    });
+    await r2Client.send(command);
 
-    if (!response.ok) {
-      let errorData;
-      try {
-        errorData = await response.json();
-        console.log(`[uploadFileToAPI] Error response:`, errorData);
-      } catch (e) {
-        const text = await response.text();
-        console.log(`[uploadFileToAPI] Non-JSON error response:`, text);
-        return { 
-          success: false, 
-          error: `HTTP ${response.status}: ${text.substring(0, 100)}` 
-        };
-      }
-      return { 
-        success: false, 
-        error: errorData.error || `HTTP ${response.status}` 
-      };
-    }
+    const url = await getR2PublicUrl(bucket, key);
+    return { success: true, url, key };
 
-    let data;
-    try {
-      data = await response.json();
-      console.log(`[uploadFileToAPI] Success response:`, data);
-    } catch (e) {
-      console.error(`[uploadFileToAPI] Failed to parse JSON response:`, e);
-      return { 
-        success: false, 
-        error: "Invalid JSON response from API" 
-      };
-    }
-
-    if (!data.success || !data.url) {
-      console.error(`[uploadFileToAPI] Response missing success or url:`, data);
-      return { 
-        success: false, 
-        error: "Invalid response format from API" 
-      };
-    }
-
-    return { 
-      success: true, 
-      url: data.url,
-      key: data.key 
-    };
   } catch (error: any) {
-    console.error("[uploadFileToAPI] Uncaught error:", error);
-    return { 
-      success: false, 
-      error: error.message || "Failed to upload file" 
-    };
+    console.error(`[uploadFileToAPI] Failed to upload to R2 directly:`, error);
+    return { success: false, error: error.message || "Failed to upload file" };
   }
-}
-
-/**
- * Upload multiple files (cover + audio for music releases)
- * @param coverFile - Cover image file
- * @param audioFile - Audio file
- * @param artistId - Artist ID for file naming
- */
-export async function uploadMusicFiles(
-  coverFile: File,
-  audioFile: File,
-  artistId: string
-): Promise<{
-  success: boolean;
-  cover?: { url: string; key: string };
-  audio?: { url: string; key: string };
-  error?: string;
-}> {
-  try {
-    // Upload both files in parallel
-    const [coverResult, audioResult] = await Promise.all([
-      uploadFileToAPI(coverFile, 'cover', artistId),
-      uploadFileToAPI(audioFile, 'audio', artistId)
-    ]);
-
-    if (!coverResult.success) {
-      return { success: false, error: `Cover upload failed: ${coverResult.error}` };
-    }
-
-    if (!audioResult.success) {
-      return { success: false, error: `Audio upload failed: ${audioResult.error}` };
-    }
-
-    return {
-      success: true,
-      cover: { url: coverResult.url!, key: coverResult.key! },
-      audio: { url: audioResult.url!, key: audioResult.key! }
-    };
-  } catch (error: any) {
-    console.error("Music files upload error:", error);
-    return { 
-      success: false, 
-      error: error.message || "Failed to upload music files" 
-    };
-  }
-}
-
-/**
- * Get public URLs for uploaded files using their keys
- * @param coverKey - Cover file key from upload response
- * @param audioKey - Audio file key from upload response
- */
-export async function getUploadedMusicUrls(coverKey: string, audioKey: string) {
-  return {
-    coverUrl: await getR2PublicUrl(BUCKET_RELEASES, coverKey),
-    audioUrl: await getR2PublicUrl(BUCKET_RELEASES, audioKey),
-  };
 }
