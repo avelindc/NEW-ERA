@@ -109,7 +109,7 @@ export function Navbar({ cms }: { cms: any }) {
   }, []);
 
   return (
-    <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+    <header className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
       scrolled 
         ? 'bg-[#0E091B]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_10px_35px_rgba(0,0,0,0.5)]' 
         : 'bg-[#0E091B]/70 backdrop-blur-md border-b border-white/5'
