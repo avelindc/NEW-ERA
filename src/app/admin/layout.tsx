@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
 
 import { PrismaClient } from "@prisma/client";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -29,7 +30,7 @@ export default async function AdminLayout({
   const brandSetting = await prisma.settings.findUnique({
     where: { key: 'brand_logo' }
   });
-  const brandLogo = brandSetting?.value || "/logo.png";
+  const brandLogo = resolveMediaUrl(brandSetting?.value) || "/logo.png";
 
   return (
     <div className="min-h-screen fundflow-bg text-gray-900 flex">

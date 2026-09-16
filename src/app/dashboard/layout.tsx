@@ -2,6 +2,7 @@ import { DashboardSidebar } from "@/components/DashboardSidebar";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { PrismaClient } from "@prisma/client";
+import { resolveMediaUrl } from "@/lib/r2";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import { MaintenancePoller } from "@/components/MaintenancePoller";
 
@@ -32,7 +33,7 @@ export default async function DashboardLayout({
   const brandSetting = await prisma.settings.findUnique({
     where: { key: 'brand_logo' }
   });
-  const brandLogo = brandSetting?.value || "/logo.png";
+  const brandLogo = resolveMediaUrl(brandSetting?.value) || "/logo.png";
 
   const rphSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_rph' } });
   const khanaSetting = await prisma.settings.findUnique({ where: { key: 'enable_catalog_khana' } });
