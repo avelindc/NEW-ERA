@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { 
@@ -45,6 +45,7 @@ export interface ReviewItem {
   coverArtworkUrl: string;
   releaseDate: string | Date;
   upc?: string | null;
+  featuredArtist?: string | null;
   distributor?: string | null;
   spotifyUrl?: string | null;
   appleMusicUrl?: string | null;
@@ -619,3 +620,6 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
     </div>
   );
 }
+
+
+

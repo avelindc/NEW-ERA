@@ -26,6 +26,7 @@ export default async function AdminReleasesPage() {
       status: release.status || "PENDING",
       coverArtworkUrl: release.coverArtworkUrl || "",
       releaseDate: releaseDateStr,
+      featuredArtist: release.featuredArtist || null,
       upc: release.upc || null,
       distributor: release.distributor || null,
       spotifyUrl: release.spotifyUrl || null,
