@@ -341,9 +341,11 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
                       </td>
 
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold mr-1.5">
-                          {rel.type}
-                        </span>
+                        {rel.type === "SINGLE" ? (
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-semibold mr-1.5">SINGLE</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-700 text-xs font-semibold mr-1.5 border border-purple-200">{rel.type}</span>
+                          )}
                         <span className="text-xs text-slate-500">{rel.genre}</span>
                       </td>
 
@@ -510,9 +512,11 @@ export default function ReviewList({ initialReleases }: { initialReleases: Revie
                   </p>
                   <div className="mt-2 flex items-center gap-2">
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md">
-                        {selected.type}
-                      </span>
+                      {selected.type === "SINGLE" ? (
+                          <span className="px-2.5 py-0.5 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md">SINGLE</span>
+                        ) : (
+                          <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-semibold rounded-md border border-purple-200">{selected.type}</span>
+                        )}
                       {selected.upc && (
                         <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-md border border-blue-200">
                           UPC: {selected.upc}

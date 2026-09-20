@@ -231,24 +231,18 @@ export async function submitMusicMetadataAction(data: any) {
   try {
     const {
       title,
+      type = "SINGLE",
       genre,
       language,
       primaryArtistId,
-      featuredArtist,
-      composer,
-      producer,
-      lyrics,
-      isrc,
-      upc,
       releaseDateStr,
-      tiktokClipStart,
       coverUrl,
-      audioUrl
+      tracks
     } = data;
     
     // Validate URLs are provided
-    if (!coverUrl || !audioUrl) {
-      return { error: "Cover and audio URLs are required" };
+    if (!coverUrl || !tracks || tracks.length === 0) {
+      return { error: "Cover and at least one track are required" };
     }
 
     // Find the specific artist the user selected
@@ -264,56 +258,62 @@ export async function submitMusicMetadataAction(data: any) {
       return { error: "Missing required fields" };
     }
 
-    // Use the URLs provided from server-side upload
-    console.log("=== SAVING TO DATABASE ===");
-    console.log("Cover URL:", coverUrl);
-    console.log("Audio URL:", audioUrl);
-
     try {
-      // Create Release & Track in DB
+      // Create Release & Tracks in DB
       const release = await prisma.release.create({
         data: {
           artistId: selectedArtist.id,
           title,
-          type: "SINGLE",
+          type,
           genre,
           language,
           primaryArtist,
-          featuredArtist,
           releaseDate,
           coverArtworkUrl: coverUrl,
           status: "PENDING",
           tracks: {
-            create: {
-              title,
-              audioUrl,
-              composer,
-              producer,
-              lyrics,
-              isrc,
-              upc,
-              tiktokClipStart
-            }
+            create: tracks.map((t: any) => ({
+              title: t.title || title,
+              audioUrl: t.audioUrl,
+              featuredArtist: t.featuredArtist || null,
+              composer: t.composer || null,
+              producer: t.producer || null,
+              lyrics: t.lyrics || null,
+              isrc: t.isrc || null,
+              upc: t.upc || null,
+              tiktokClipStart: t.tiktokClipStart || null
+            }))
           }
-        }
+        },
+        include: { tracks: true }
       });
 
       revalidatePath("/dashboard");
       revalidatePath("/dashboard/releases");
       revalidatePath("/admin/releases");
 
+      // For telegram notification, we summarize if it's an EP/ALBUM
+      let trackSummary = title;
+      let audioUrl = release.tracks[0]?.audioUrl || "";
+      let composerInfo = release.tracks[0]?.composer || "";
+      
+      if (type !== "SINGLE" && tracks.length > 1) {
+        trackSummary = `${title} (${type} - ${tracks.length} Tracks)`;
+        composerInfo = `Various (${tracks.length} tracks)`;
+      }
+
       // Send Telegram Notification and save message ID
       const telegramMessageId = await sendTelegramReleaseNotification(
         release.id,
         primaryArtist,
-        title,
+        trackSummary,
         session.user.email || "Unknown",
         releaseDateStr,
         coverUrl,
         audioUrl,
-        upc || "",
-        isrc || "",
-        composer || ""
+        "", // UPC at release level isn't passed here easily, left blank
+        "", // ISRC left blank for albums
+        composerInfo
       ).catch(e => {
         console.error("Telegram notify err:", e);
         return null;

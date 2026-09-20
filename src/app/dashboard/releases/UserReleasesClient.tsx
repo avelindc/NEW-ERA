@@ -368,9 +368,11 @@ export default function UserReleasesClient({
 
                       {/* Type & Genre */}
                       <td className="py-3.5 px-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 mr-2">
-                          {rel.type}
-                        </span>
+                        {rel.type === "SINGLE" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700 mr-2">SINGLE</span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200 mr-2">{rel.type}</span>
+                          )}
                         <span className="text-xs text-slate-500">{rel.genre}</span>
                       </td>
 
@@ -474,9 +476,11 @@ export default function UserReleasesClient({
                   </p>
                   <div className="mt-2 flex items-center gap-2">
                     {getStatusBadge(selectedRelease.status)}
-                    <span className="text-xs font-medium px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md">
-                      {selectedRelease.type}
-                    </span>
+                    {selectedRelease.type === "SINGLE" ? (
+                      <span className="text-xs font-medium px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-md">SINGLE</span>
+                    ) : (
+                      <span className="text-xs font-medium px-2.5 py-0.5 bg-purple-100 text-purple-700 border border-purple-200 rounded-md">{selectedRelease.type}</span>
+                    )}
                   </div>
                 </div>
               </div>
