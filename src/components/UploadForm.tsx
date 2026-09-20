@@ -105,7 +105,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
   };
 
   const updateTrack = (id: string, field: string, value: any) => {
-    setTracks(tracks.map(t => t.id === id ? { ...t, [field]: value } : t));
+    setTracks(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
   };
 
   const togglePlatform = (id: string) => {
