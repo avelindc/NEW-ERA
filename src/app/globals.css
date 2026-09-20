@@ -160,7 +160,7 @@ body {
   width: 100%;
   padding: 0.875rem 1rem;
   background-color: rgba(74, 222, 128, 0.05) !important;
-  border: 2px dashed rgba(74, 222, 128, 0.7) !important;
+  border: 2px solid rgba(74, 222, 128, 0.7) !important;
   border-radius: 0.75rem !important;
   color: #0f172a;
   transition: all 0.2s ease;
