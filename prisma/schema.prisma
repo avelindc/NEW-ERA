@@ -135,6 +135,7 @@ model Track {
   producer    String?
   lyrics      String?
   tiktokClipStart String? // e.g. "00:30" or "01:15"
+    featuredArtist  String?
   
   streams     Streaming[]
   royaltyPerSongs RoyaltyPerSong[]
