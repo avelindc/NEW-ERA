@@ -397,7 +397,7 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
             <div className="mt-8 bg-blue-50/80 border border-blue-100 rounded-2xl p-5 flex gap-4 text-blue-800">
               <Info className="shrink-0 text-blue-600" size={24} />
               <div className="text-sm leading-relaxed">
-                <p>Proses kurasi biasanya memakan waktu 1-3 hari kerja.</p>
+                <p>Proses kurasi biasanya memakan waktu 7-14 hari.</p>
                 <p>Kamu akan mendapat notifikasi melalui email dan dashboard.</p>
               </div>
             </div>
