@@ -9,7 +9,7 @@ import {
 } from "@/app/actions/upload";
 import { createArtistAction } from "@/app/actions/artist";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Calendar, Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles, Trash2, Music } from "lucide-react";
+import { Clock, Info, Calendar, Loader2, UploadCloud, CheckCircle2, Plus, ArrowRight, ArrowLeft, Check, Sparkles, Trash2, Music } from "lucide-react";
 
 // Modern Streaming Platforms list (30 platforms)
 const STREAMING_PLATFORMS = [
