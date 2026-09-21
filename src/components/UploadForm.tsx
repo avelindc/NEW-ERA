@@ -692,10 +692,10 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           )}
 
           <div className="flex justify-between mt-8">
-            <button type="button" onClick={() => setStep(1)} className="px-6 py-3 text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+            <button type="button" onClick={() => setStep(1)} className="px-6 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl font-medium transition-colors flex items-center gap-2">
               <ArrowLeft size={18} /> Kembali
             </button>
-            <button type="button" onClick={handleNextToPlatforms} className="fundflow-btn-primary px-8 py-3 flex items-center gap-2">
+            <button type="button" onClick={handleNextToPlatforms} className="px-8 py-3 bg-[#166534] hover:bg-[#14532d] text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-900/20 flex items-center gap-2">
               Lanjut ke Platform <ArrowRight size={18} />
             </button>
           </div>
@@ -743,10 +743,10 @@ export function UploadForm({ artists, userId }: { artists: any[]; userId: string
           </div>
 
           <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
-            <button type="button" onClick={() => setStep(2)} className="px-6 py-3 text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+            <button type="button" onClick={() => setStep(2)} className="px-6 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl font-medium transition-colors flex items-center gap-2">
               <ArrowLeft size={18} /> Kembali
             </button>
-            <button type="submit" disabled={selectedPlatforms.length === 0} className="fundflow-btn-primary px-8 py-3 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" disabled={selectedPlatforms.length === 0} className="px-8 py-3 bg-[#166534] hover:bg-[#14532d] text-white rounded-xl font-bold transition-colors shadow-lg shadow-green-900/20 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
               Submit Rilisan <ArrowRight size={18} />
             </button>
           </div>
