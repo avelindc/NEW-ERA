@@ -66,6 +66,11 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
   const [reason, setReason] = useState("");
   const [docViewer, setDocViewer] = useState<{ url: string; label: string } | null>(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(visibleCards.length / ITEMS_PER_PAGE);
+  const paginatedCards = visibleCards.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   const removeCard = useCallback((id: string) => {
     setVisibleCards(prev => prev.filter(c => c.id !== id));
   }, []);
@@ -117,7 +122,7 @@ export function RegistrationCards({ cards }: { cards: CardData[] }) {
     <>
       {/* Card Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {visibleCards.map((card) => (
+        {paginatedCards.map((card) => (
           <div
             key={card.id}
             onClick={() => { setSelectedCard(card); setRejectMode(false); setReason(""); }}
