@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,6 +22,11 @@ export function AllArtistsClient({ artists }: { artists: Artist[] }) {
   const router = useRouter();
   const [slidingId, setSlidingId] = useState<string | null>(null);
   const [isExiting, setIsExiting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  const totalPages = Math.ceil(artists.length / ITEMS_PER_PAGE);
+  const paginatedArtists = artists.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleClick = (artist: Artist) => {
     if (slidingId) return; // prevent double click
@@ -56,7 +61,7 @@ export function AllArtistsClient({ artists }: { artists: Artist[] }) {
       )}
 
       {/* Artist Rows */}
-      {artists.map((artist, i) => (
+      {paginatedArtists.map((artist, i) => (
         <div
           key={artist.id}
           onClick={() => handleClick(artist)}
@@ -124,6 +129,42 @@ export function AllArtistsClient({ artists }: { artists: Artist[] }) {
           </div>
         </div>
       ))}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
+          <div className="text-sm text-gray-500">
+            Showing <span className="font-medium text-gray-900">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * ITEMS_PER_PAGE, artists.length)}</span> of <span className="font-medium text-gray-900">{artists.length}</span> artists
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="w-8 h-8 flex items-center justify-center text-sm font-medium text-gray-700 bg-white rounded-full hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+            >
+              &lt;
+            </button>
+            <div className="flex gap-1 items-center px-2">
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${currentPage === i + 1 ? 'bg-[#98d249] text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="w-8 h-8 flex items-center justify-center text-sm font-medium text-gray-700 bg-white rounded-full hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+            >
+              &gt;
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
