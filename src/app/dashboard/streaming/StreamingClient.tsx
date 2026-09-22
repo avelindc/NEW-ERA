@@ -1,5 +1,5 @@
-import { resolveMediaUrl } from "@/lib/r2";
 "use client";
+import { resolveMediaUrl } from "@/lib/r2";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import {
