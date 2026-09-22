@@ -89,7 +89,7 @@ export function AllArtistsClient({ artists }: { artists: Artist[] }) {
             <div className="flex items-center gap-3 w-max">
               {artist.avatarUrl || artist.user.image ? (
                 <img
-                  src={resolveMediaUrl(artist.avatarUrl) || artist.resolveMediaUrl(user.image)!}
+                  src={resolveMediaUrl(artist.avatarUrl) || resolveMediaUrl(artist.user.image)!}
                   alt={artist.stageName}
                   className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                 />
