@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AreaChart, Area, BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { ArrowUpRight, Music, Clock, DollarSign, Search, Plus, MoreHorizontal, Users, Settings } from "lucide-react";
+import { resolveMediaUrl } from "@/lib/r2";
 
 type OverviewData = {
   totalReleases: number;
@@ -58,7 +59,7 @@ export function UserOverviewClient({ data, user }: { data: OverviewData, user: a
             <div className="flex items-center gap-4 text-sm font-medium text-slate-700 bg-white/40 px-4 py-2 rounded-full backdrop-blur-md">
               {user.name} &nbsp;&nbsp;
               <div className="w-6 h-6 rounded-full overflow-hidden border border-white">
-                <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} className="w-full h-full object-cover" />
+                <img src={resolveMediaUrl(user.image) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} className="w-full h-full object-cover" />
               </div>
             </div>
           </div>

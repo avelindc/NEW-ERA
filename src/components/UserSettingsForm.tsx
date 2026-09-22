@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { updateProfileAction } from "@/app/actions/profile";
 import { Upload } from "lucide-react";
+import { resolveMediaUrl } from "@/lib/r2";
 
 export function UserSettingsForm({ user }: { user: any }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [preview, setPreview] = useState<string | null>(user.image || null);
+  const [preview, setPreview] = useState<string | null>(user.image ? resolveMediaUrl(user.image) : null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
