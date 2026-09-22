@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from "@/lib/r2";
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
@@ -164,7 +165,7 @@ function TrackListPanel({
               <div className="w-10 h-10 rounded-xl flex-shrink-0 overflow-hidden"
                 style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)" }}>
                 {track.cover
-                  ? <img src={track.cover} alt={track.title} className="w-full h-full object-cover" />
+                  ? <img src={resolveMediaUrl(track.cover)} alt={track.title} className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center">
                       <Music className="w-4 h-4 text-white" />
                     </div>}
@@ -291,7 +292,7 @@ export function StreamingClient({ allTracks, globalStats, globalDailyStreams, gl
             <div className="flex items-center gap-2 mt-1">
               <div className="w-5 h-5 rounded-lg overflow-hidden flex-shrink-0" style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)" }}>
                 {selectedTrack.cover
-                  ? <img src={selectedTrack.cover} alt="" className="w-full h-full object-cover" />
+                  ? <img src={resolveMediaUrl(selectedTrack.cover)} alt="" className="w-full h-full object-cover" />
                   : <div className="w-full h-full flex items-center justify-center"><Music className="w-3 h-3 text-white" /></div>}
               </div>
               <p className="text-sm font-semibold text-blue-600">{selectedTrack.title}</p>

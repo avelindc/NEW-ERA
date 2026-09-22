@@ -386,7 +386,7 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
 
                     {/* Play Button & Cover */}
                     <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 group/cover border border-gray-100">
-                      <img src={track.release?.coverArtworkUrl} alt="Cover" className="w-full h-full object-cover" />
+                      <img src={resolveMediaUrl(track.release?.coverArtworkUrl)} alt="Cover" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/cover:opacity-100 transition">
                         <button 
                           onClick={() => handlePlay(track.id, track.audioUrl)}

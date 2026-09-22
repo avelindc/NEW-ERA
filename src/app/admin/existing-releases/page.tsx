@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from "@/lib/r2";
 import { PrismaClient } from "@prisma/client";
 import { Plus, Music, ExternalLink, Disc } from "lucide-react";
 import Link from "next/link";
@@ -127,7 +128,7 @@ export default async function ExistingReleasesPage({
                   {/* Cover */}
                   <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 shrink-0">
                     <img
-                      src={release.coverArtworkUrl}
+                      src={resolveMediaUrl(release.coverArtworkUrl)}
                       alt={release.title}
                       className="w-full h-full object-cover"
                     />

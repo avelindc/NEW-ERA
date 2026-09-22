@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from "@/lib/r2";
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
@@ -35,7 +36,7 @@ export default async function ReleaseDetailPage({ params }: { params: Promise<{ 
       {/* Header Card */}
       <div className="bg-gradient-to-br from-[#f000ff] to-[#8a2be2] text-white p-6 md:p-10 rounded-[2rem] shadow-xl border border-white/10 mb-8 flex flex-col md:flex-row gap-8 items-start md:items-center">
         <div className="w-40 h-40 md:w-56 md:h-56 shrink-0 rounded-2xl overflow-hidden shadow-2xl bg-white/10">
-          <img src={release.coverArtworkUrl} alt={release.title} className="w-full h-full object-cover" />
+          <img src={resolveMediaUrl(release.coverArtworkUrl)} alt={release.title} className="w-full h-full object-cover" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2 flex-wrap">

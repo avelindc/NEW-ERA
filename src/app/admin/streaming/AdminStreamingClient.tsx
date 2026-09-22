@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from "@/lib/r2";
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -225,7 +226,7 @@ export function AdminStreamingClient({ data }: Props) {
             <button key={t.id} onClick={() => handleSelectTrack(t)} className={`w-full flex items-center gap-3 p-2.5 rounded-2xl transition text-left group border ${active ? "bg-gradient-to-r from-purple-600 to-blue-500 shadow-md border-transparent text-white" : "hover:bg-purple-50 border-transparent hover:border-purple-100"}`}>
               <span className={`text-[10px] font-bold w-3 ${active ? "text-white/60" : "text-gray-300"}`}>{t.rank}</span>
               <div className="w-8 h-8 rounded-lg flex-shrink-0 overflow-hidden" style={{ background: "linear-gradient(135deg,#7C3AED,#3B82F6)" }}>
-                {t.cover ? <img src={t.cover} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Music className="w-3 h-3 text-white" /></div>}
+                {t.cover ? <img src={resolveMediaUrl(t.cover)} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Music className="w-3 h-3 text-white" /></div>}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
