@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { uploadFileToAPI } from "@/lib/r2-helpers";
 import { isMaintenanceActive } from "@/lib/maintenance";
 import bcrypt from "bcryptjs";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 

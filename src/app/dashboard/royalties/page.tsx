@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { DollarSign, DownloadCloud, Activity, Music, Smartphone, MonitorPlay, Headset } from "lucide-react";
 import { RoyaltyBarChart, RoyaltyDonutChart } from "@/components/RoyaltyCharts";
 import { DownloadCsvButton } from "@/components/DownloadCsvButton";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -196,7 +197,7 @@ export default async function UserRoyaltiesPage() {
                 </thead>
                 <tbody>
                   {royalties.map(r => {
-                    const profileImage = r.artist.avatarUrl || r.artist.user?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.artist.stageName}`;
+                    const profileImage = r.artist.avatarUrl || r.artist.resolveMediaUrl(user?.image) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.artist.stageName}`;
                     return (
                       <tr key={r.id} className="border-b border-gray-50 last:border-0 hover:bg-purple-50/50 transition-colors group">
                         <td className="p-5 pl-8">

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { auth } from "@/auth";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -43,10 +44,10 @@ export async function GET() {
     });
 
     // 4. Artists
-    const artists = await prisma.artist.findMany({
+    const artists = resolveMediaUrl(await prisma.artist.findMany({
       where: { avatarUrl: { contains: supabaseDomain } },
       select: { id: true, avatarUrl: true, stageName: true }
-    });
+    }));
     artists.forEach(a => filesToMigrate.push({
       table: 'Artist', id: a.id, column: 'avatarUrl', url: a.avatarUrl, name: `Artist Avatar: ${a.stageName}`
     }));

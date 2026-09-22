@@ -3,6 +3,7 @@ import { addRoyaltyAction } from "@/app/actions/royalties";
 import { DollarSign, Save } from "lucide-react";
 import { RoyaltyForm } from "@/components/RoyaltyForm";
 import { DownloadCsvButton } from "@/components/DownloadCsvButton";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -58,7 +59,7 @@ export default async function AdminRoyaltiesPage() {
               </div>
             ) : (
               recentRoyalties.map((r) => {
-                const profileImage = r.artist.avatarUrl || r.artist.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.artist.stageName}`;
+                const profileImage = resolveMediaUrl(r.artist.avatarUrl || r.artist.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.artist.stageName}`);
                 
                 return (
                   <div key={r.id} className="group flex justify-between items-center p-4 bg-gray-50 hover:bg-blue-50/50 rounded-xl border border-transparent hover:border-blue-100 transition-all duration-200">
@@ -133,7 +134,7 @@ export default async function AdminRoyaltiesPage() {
                 </thead>
                 <tbody>
                   {allRoyalties.map(r => {
-                    const profileImage = r.artist.avatarUrl || r.artist.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.artist.stageName}`;
+                    const profileImage = resolveMediaUrl(r.artist.avatarUrl || r.artist.user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${r.artist.stageName}`);
                     return (
                       <tr key={r.id} className="border-b border-gray-50 last:border-0 hover:bg-purple-50/50 transition-colors group">
                         <td className="p-5 pl-8">

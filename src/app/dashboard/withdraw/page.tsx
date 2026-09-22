@@ -1,3 +1,4 @@
+import { resolveMediaUrl } from "@/lib/r2";
 import { auth } from "@/auth";
 import { PrismaClient } from "@prisma/client";
 import { CreditCard, Wallet, ArrowDownLeft, Clock, CheckCircle2, XCircle, Wifi } from "lucide-react";
@@ -24,7 +25,7 @@ export default async function WithdrawPage() {
   });
 
   const artistName = user?.artists?.[0]?.stageName || user?.name || "Artist";
-  const profileImage = user?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'default'}`;
+  const profileImage = user?.image ? resolveMediaUrl(user.image) : `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.name || 'default'}`;
 
   const totalRevenue = user?.artists?.reduce((acc, curr) => acc + curr.royalties.reduce((sum, r) => sum + r.totalRevenue, 0), 0) || 0;
   const totalWithdrawn = user?.withdrawRequests.filter(w => w.status === 'PAID').reduce((acc, curr) => acc + curr.amount, 0) || 0;

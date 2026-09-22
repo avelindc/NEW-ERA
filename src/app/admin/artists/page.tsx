@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { ArtistActionButtons } from "./ArtistActionButtons";
 import { updateArtistStatusAction } from "@/app/actions/admin";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
@@ -56,7 +57,7 @@ export default async function AdminArtistsPage() {
                 
                 <div className="flex-1 pr-4">
                   <Link href={`/admin/artists/${user.id}`} className="flex items-center gap-3 w-max" onClick={(e) => e.stopPropagation()}>
-                    <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Profile" className="w-8 h-8 rounded-full bg-gray-100 object-cover flex-shrink-0" />
+                    <img src={resolveMediaUrl(user.image) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Profile" className="w-8 h-8 rounded-full bg-gray-100 object-cover flex-shrink-0" />
                     <span className="font-bold text-gray-900 group-hover:text-white transition truncate hover:underline">{user.artists?.[0]?.stageName || user.name}</span>
                   </Link>
                 </div>
@@ -96,7 +97,7 @@ export default async function AdminArtistsPage() {
                 
                 <div className="flex-1 pr-4">
                   <Link href={`/admin/artists/${user.id}`} className="flex items-center gap-3 w-max" onClick={(e) => e.stopPropagation()}>
-                    <img src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Profile" className="w-8 h-8 rounded-full bg-gray-100 object-cover flex-shrink-0" />
+                    <img src={resolveMediaUrl(user.image) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Profile" className="w-8 h-8 rounded-full bg-gray-100 object-cover flex-shrink-0" />
                     <span className="font-bold text-gray-900 group-hover:text-white transition truncate hover:underline">{user.artists?.[0]?.stageName || user.name}</span>
                   </Link>
                 </div>

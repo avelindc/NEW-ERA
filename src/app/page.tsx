@@ -28,6 +28,7 @@ import {
   RoundArrowBadge 
 } from "./LandingClient";
 import FAQSection from "@/components/FAQSection";
+import { resolveMediaUrl } from "@/lib/r2";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -391,7 +392,7 @@ export default async function LandingPage() {
                   <div className="flex items-center gap-3.5 mt-6 pt-4 border-t border-white/10">
                     {testi.avatarUrl && !testi.avatarUrl.includes("supabase.co") ? (
                       <img 
-                        src={testi.avatarUrl} 
+                        src={testi.resolveMediaUrl(avatarUrl)} 
                         alt={testi.name} 
                         className="w-11 h-11 rounded-full object-cover ring-2 ring-[#D4FF00]/30" 
                       />

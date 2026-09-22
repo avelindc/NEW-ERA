@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { updateArtistStatusAction, resetUserPassword, deleteUserAction, resetArtistDataAction, bulkDeleteReleasesAction } from "@/app/actions/admin";
+import { resolveMediaUrl } from "@/lib/r2";
 
 type ArtistDetailClientProps = {
   user: any;
@@ -211,7 +212,7 @@ export function ArtistDetailClient({ user, stats, allTracks }: ArtistDetailClien
           {/* Profile Card */}
           <div className="bg-white/60 backdrop-blur-md border border-white/50 rounded-3xl p-6 flex flex-col items-center text-center shadow-sm">
             <img 
-              src={user.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+              src={resolveMediaUrl(user.image) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
               alt="Profile" 
               className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg mb-4"
             />

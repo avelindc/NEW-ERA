@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { createClient } from '@supabase/supabase-js';
 import { r2Client, BUCKET_RELEASES, BUCKET_PROFILES, BUCKET_ASSETS, R2_PUBLIC_URL_RELEASES, R2_PUBLIC_URL_PROFILES, R2_PUBLIC_URL_ASSETS } from "@/lib/r2";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 

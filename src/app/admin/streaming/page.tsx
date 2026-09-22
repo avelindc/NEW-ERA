@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { AdminStreamingClient } from "./AdminStreamingClient";
+import { resolveMediaUrl } from "@/lib/r2";
 
 const prisma = new PrismaClient();
 
